@@ -77,18 +77,30 @@ public class AuthService {
         return tenant;
     }
 
-    // Temporary method for development/testing
-    public Tenant resetPassword(String email, String newPassword) {
+    //Change password
+    public Tenant changePassword(
+            String email,
+            String currentPassword,
+            String newPassword) {
 
         Tenant tenant = tenantRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("Tenant not found"));
 
-        // Hash the new password before storing it
-        String hashedPassword =
+        boolean passwordCorrect =
+                passwordService.verifyPassword(
+                        currentPassword,
+                        tenant.getPasswordHash()
+                );
+
+        if (!passwordCorrect) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        String newHashedPassword =
                 passwordService.hashPassword(newPassword);
 
-        tenant.setPasswordHash(hashedPassword);
+        tenant.setPasswordHash(newHashedPassword);
 
         return tenantRepository.save(tenant);
     }

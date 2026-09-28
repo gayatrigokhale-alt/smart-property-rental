@@ -673,8 +673,219 @@ Content-Type: application/json
   "phone": "123",
   "gender": "Unknown",
   "occupation": "",
-  "age": 15,
+  "age": -15,
   "tenantType": "Something",
   "hasPets": null,
   "password": "123"
+}
+
+### TEST - Duplicate Email During Registration
+
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Duplicate",
+  "lastName": "Email",
+  "email": "neha.updated@rental.test",
+  "phone": "9876543211",
+  "gender": "Female",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Student",
+  "hasPets": false,
+  "password": "Test@123"
+}
+
+### TEST - Database Connection
+
+GET http://localhost:8080/api/tenants
+
+### Test 5(ii-a): Duplicate email during profile update
+
+PUT http://localhost:8080/api/tenants/profile/neha.updated@rental.test
+Content-Type: application/json
+
+{
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "email": "ananya.patil@example.com",
+  "phone": "9876543210",
+  "gender": "Female",
+  "occupation": "Software Engineer",
+  "age": 24,
+  "tenantType": "Working Professional",
+  "hasPets": false
+}
+
+### Test 5(ii-b): New unused email during profile update
+
+PUT http://localhost:8080/api/tenants/profile/neha.updated@rental.test
+Content-Type: application/json
+
+{
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "email": "neha.final@rental.test",
+  "phone": "9876543210",
+  "gender": "Female",
+  "occupation": "Software Engineer",
+  "age": 24,
+  "tenantType": "Working Professional",
+  "hasPets": false
+}
+
+### Login with updated email
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.final@rental.test",
+  "password": "Test@123"
+}
+
+### Login with old email
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.updated@rental.test",
+  "password": "Test@123"
+}
+
+### Set password for existing tenant
+
+POST http://localhost:8080/api/auth/reset-password?email=ananya.patil@example.com&newPassword=Test@123
+
+###
+GET http://localhost:8080/api/tenants
+
+### Set password for T001
+
+POST http://localhost:8080/api/auth/reset-password?email=ananya.patil@example.com&newPassword=Test@123
+### Login T001
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ananya.patil@example.com",
+  "password": "Te"
+}
+
+### Set password for T002
+
+POST http://localhost:8080/api/auth/reset-password?email=rahul.verma@rental.test&newPassword=Test@123
+
+### Login T002
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.final@rental.test",
+  "password": "Test@123"
+}
+
+###Change Password
+### Change T001 password
+
+POST http://localhost:8080/api/auth/change-password?email=ananya.patil@example.com
+Content-Type: application/json
+
+{
+  "currentPassword": "Test@123",
+  "newPassword": "NewTest@123"
+}
+
+### Login T001 with new password
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ananya.patil@example.com",
+  "password": "NewTest@123"
+}
+
+### Old reset-password endpoint — should NOT exist
+
+POST http://localhost:8080/api/auth/reset-password?email=ananya.patil@example.com&newPassword=SomeNewPassword@123
+### Get all landlords
+
+GET http://localhost:8080/api/landlords
+
+### Initialize existing landlords
+
+POST http://localhost:8080/api/landlords/initialize
+
+### Landlord login - Rajesh
+
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "suresh.patil@rental.test",
+  "password": "Test@123"
+}
+
+### Tenant trying to login as landlord
+
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "ananya.sharma@rental.test",
+  "password": "NewTest@123"
+}
+
+### Landlord trying to login as tenant
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "rajesh.sharma@rental.test",
+  "password": "Test@123"
+}
+
+### Rajesh - login with current password
+
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "rajesh.sharma@rental.test",
+  "password": "Test@123"
+}
+
+### Rajesh - change password
+
+POST http://localhost:8080/api/landlords/change-password?email=rajesh.sharma@rental.test
+Content-Type: application/json
+
+{
+  "currentPassword": "Test@123",
+  "newPassword": "Landlord@123"
+}
+
+### Rajesh - old password should fail
+
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "rajesh.sharma@rental.test",
+  "password": "Test@123"
+}
+### Rajesh - new password should work
+
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "rajesh.sharma@rental.test",
+  "password": "Landlord@123"
 }

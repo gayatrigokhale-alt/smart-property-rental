@@ -1,5 +1,6 @@
 package com.rental.smart_property_rental.controller;
 
+import com.rental.smart_property_rental.dto.ChangePasswordRequest;
 import jakarta.validation.Valid;
 import com.rental.smart_property_rental.dto.LoginRequest;
 import com.rental.smart_property_rental.dto.RegisterRequest;
@@ -60,22 +61,28 @@ public class AuthController {
         }
     }
 
-    // Temporary endpoint for development/testing
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(
+    // Change password
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
             @RequestParam String email,
-            @RequestParam String newPassword) {
+            @Valid @RequestBody ChangePasswordRequest request) {
 
         try {
-
-            Tenant tenant = authService.resetPassword(
+            Tenant tenant = authService.changePassword(
                     email,
-                    newPassword
+                    request.getCurrentPassword(),
+                    request.getNewPassword()
             );
 
             return ResponseEntity.ok(tenant);
 
         } catch (RuntimeException e) {
+
+            if (e.getMessage().equals("Current password is incorrect")) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(e.getMessage());
+            }
 
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)

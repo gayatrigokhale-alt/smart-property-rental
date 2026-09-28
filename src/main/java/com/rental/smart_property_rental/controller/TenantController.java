@@ -1,6 +1,6 @@
 package com.rental.smart_property_rental.controller;
 
-
+import jakarta.validation.Valid;
 import com.rental.smart_property_rental.dto.UpdateTenantRequest;
 import com.rental.smart_property_rental.model.Tenant;
 import com.rental.smart_property_rental.service.TenantService;
@@ -47,7 +47,7 @@ public class TenantController {
     @PutMapping("/profile/{email}")
     public ResponseEntity<?> updateProfile(
             @PathVariable String email,
-            @RequestBody UpdateTenantRequest updatedTenant) {
+            @Valid  @RequestBody UpdateTenantRequest updatedTenant) {
 
         try {
             Tenant tenant = tenantService.updateTenantProfile(
