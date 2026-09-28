@@ -1,0 +1,680 @@
+POST http://localhost:8080/api/tenants
+Content-Type: application/json
+
+{
+  "message": "Login successful",
+  "tenantId": "T011",
+  "firstName": "Neha",
+  "email": "neha.desai@rental.test"
+}
+### Update tenant
+
+PUT http://localhost:8080/api/tenants/6ab7accdaeb992bfb2292faa
+Content-Type: application/json
+
+{
+  "tenantId": "T011",
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "email": "neha.desai@rental.test",
+  "phone": "9876543221",
+  "gender": "Female",
+  "occupation": "Software Engineer",
+  "age": 27
+}
+
+### Delete tenant
+
+DELETE http://localhost:8080/api/tenants/6ab7accdaeb992bfb2292faa
+
+### Check deleted tenant
+
+GET http://localhost:8080/api/tenants/6ab7accdaeb992bfb2292faa
+
+### Tenant Registration
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "message": "Login successful",
+  "tenantId": "T011",
+  "firstName": "Neha",
+  "email": "neha.desai@rental.test"
+}
+### Check tenant
+GET http://localhost:8080/api/tenants/6aae5bbf2a762c2749691474
+
+### Tenant Login
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.desai@rental.test",
+  "password": "mypassword123"
+}
+
+### Tenant Login - Wrong Password
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.desai@rental.test",
+  "password": "wrongpassword"
+}
+
+### View Tenant Profile
+
+GET http://localhost:8080/api/tenants/profile/neha.desai@rental.test
+
+### Update tenant profile
+PUT http://localhost:8080/api/tenants/profile/neha.desai@rental.test
+Content-Type: application/json
+
+{
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "phone": "9876543999",
+  "gender": "Female",
+  "occupation": "Senior Software Engineer",
+  "age": 28,
+  "tenantType": "Bachelor",
+  "hasPets": true
+}
+
+### Get T001 preferences
+GET http://localhost:8080/api/tenant-preferences/T001
+
+### Get T011 preferences
+GET http://localhost:8080/api/tenant-preferences/T011
+
+### Create T011 preferences
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T011",
+  "preferredLocation": "Kothrud",
+  "minimumBudget": 18000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 900,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Update T011 preferences
+PUT http://localhost:8080/api/tenant-preferences/6ab8df1036fea590102145e2
+Content-Type: application/json
+
+{
+  "preferenceId": "PR011",
+  "tenantId": "T011",
+  "preferredLocation": "Kothrud",
+  "minimumBudget": 20000,
+  "maximumBudget": 32000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 1000,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Delete T011 preferences
+DELETE http://localhost:8080/api/tenant-preferences/6ab8df1036fea590102145e2
+###Generate preference ID
+
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T011",
+  "preferredLocation": "Kothrud",
+  "minimumBudget": 18000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 900,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Duplication
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T011",
+  "preferredLocation": "Kothrud",
+  "minimumBudget": 18000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 900,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Get tenant preferences
+GET http://localhost:8080/api/tenant-preferences/T001
+
+### Get T011 preferences
+GET http://localhost:8080/api/tenant-preferences/T011
+
+### Create tenant preference
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+
+{
+  "preferenceId": "PR012",
+  "tenantId": "T011",
+  "preferredLocation": "Baner",
+  "minimumBudget": 20000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 900,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any floor",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Update tenant preference
+PUT http://localhost:8080/api/tenant-preferences/6aae6a342a762c27496914de
+Content-Type: application/json
+
+{
+  "preferredLocation": "Baner",
+  "minimumBudget": 20000,
+  "maximumBudget": 32000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 1000,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any floor",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Create preference for T012
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+
+{
+  "preferenceId": "PR012",
+  "tenantId": "T012",
+  "preferredLocation": "Baner",
+  "minimumBudget": 20000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 900,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Get T012 preferences
+GET http://localhost:8080/api/tenant-preferences/T012
+
+### Tenant amenity preferences
+GET http://localhost:8080/api/tenant-amenity-preferences/T001
+
+### POST
+### Create tenant amenity preferences
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T011",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004",
+    "A008",
+    "A012"
+  ]
+}
+
+### Update tenant amenity preferences
+PUT http://localhost:8080/api/tenant-amenity-preferences/6ab8f1a42595caee851d0a19
+Content-Type: application/json
+
+{
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004",
+    "A007",
+    "A009",
+    "A012"
+  ]
+}
+
+###Delete
+### Delete tenant amenity preferences
+DELETE http://localhost:8080/api/tenant-amenity-preferences/6ab8f1a42595caee851d0a19
+
+###Invalid POST
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T011",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A999"
+  ]
+}
+###Invalid Post
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T013",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A838383833"
+  ]
+}
+
+###
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T014",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A838383833"
+  ]
+}
+
+
+###
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T016",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A838383833"
+  ]
+}
+
+###
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T018",
+  "amenityIds": [
+    "A99999"
+  ]
+}
+
+###
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A9999999999"
+  ]
+}
+###
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A999"
+  ]
+}
+
+###
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A7878"
+  ]
+}
+###
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A787896"
+  ]
+}
+###
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A787896"
+  ]
+}
+
+###
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A787896"
+  ]
+}
+
+###
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T017",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A787896"
+  ]
+}
+
+###
+### Test Case 3 - Invalid PUT: Tenant_ID does not exist
+
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae6a342a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T999",
+  "amenityIds": [
+    "A001",
+    "A003"
+  ]
+}
+
+###
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T999",
+  "amenityIds": [
+    "A001",
+    "A003"
+  ]
+}
+
+###
+### Test Case 4 - Invalid POST: Invalid Tenant_ID
+
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T999",
+  "amenityIds": [
+    "A001",
+    "A003"
+  ]
+}
+
+###
+### Test Case 5 - Valid PUT
+
+PUT http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004"
+  ]
+}
+
+###
+### Test Case 6 - Valid POST
+
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T012",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004"
+  ]
+}
+
+###
+POST http://localhost:8080/api/tenant-amenity-preferences
+Content-Type: application/json
+
+{
+  "tenantId": "T011",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004"
+  ]
+}
+###Tenant section
+### TENANT - Invalid ID
+GET http://localhost:8080/api/tenants/nonexistent-id
+### TENANT - Invalid Email
+GET http://localhost:8080/api/tenants/profile/nonexistent@rental.test
+
+### TENANT - Update Nonexistent Tenant
+PUT http://localhost:8080/api/tenants/nonexistent-id
+Content-Type: application/json
+
+{
+  "tenantId": "T999",
+  "firstName": "Test",
+  "lastName": "User",
+  "email": "test.user@rental.test",
+  "phone": "9999999999",
+  "gender": "Other",
+  "occupation": "Student",
+  "age": 20,
+  "tenantType": "Bachelor",
+  "hasPets": false
+}
+
+### TENANT - Delete Nonexistent Tenant
+DELETE http://localhost:8080/api/tenants/nonexistent-id
+
+### TENANT - Duplicate Email
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Duplicate",
+  "lastName": "Email",
+  "email": "neha.desai@rental.test",
+  "phone": "9999999999",
+  "gender": "Female",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Bachelor",
+  "hasPets": false,
+  "password": "test123"
+}
+
+### TENANT - PUT - Duplicate Email
+PUT http://localhost:8080/api/tenants/profile/neha.desai@rental.test
+Content-Type: application/json
+
+{
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "email": "ananya.patil@example.com",
+  "phone": "9867012345",
+  "gender": "Female",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Bachelor",
+  "hasPets": false
+}
+
+### TENANT - PUT - Duplicate Email
+PUT http://localhost:8080/api/tenants/profile/neha.desai@rental.test
+Content-Type: application/json
+
+{
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "email": "ananya.patil@example.com",
+  "phone": "9867012345",
+  "gender": "Female",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Bachelor",
+  "hasPets": false
+}
+
+### TENANT - PUT - Change Email Successfully
+PUT http://localhost:8080/api/tenants/profile/neha.desai@rental.test
+Content-Type: application/json
+
+{
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "email": "neha.updated@rental.test",
+  "phone": "9867012345",
+  "gender": "Female",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Bachelor",
+  "hasPets": false
+}
+
+### TENANT - LOGIN - New Email
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.updated@rental.test",
+  "password": "Test@123"
+}
+
+### TENANT - LOGIN - Old Email
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.desai@rental.test",
+  "password": "Test@123"
+}
+
+### TEMP - Reset Neha Password
+POST http://localhost:8080/api/auth/reset-password?email=neha.updated@rental.test&newPassword=Test%40123
+
+### TENANT - LOGIN - New Email
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.updated@rental.test",
+  "password": "Test@123"
+}
+
+### TENANT - LOGIN - Old Email
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "neha.desai@rental.test",
+  "password": "Test@123"
+}
+
+###Invalid cases
+### TEST - Invalid Email
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "User",
+  "email": "test@",
+  "phone": "9876543210",
+  "gender": "Male",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Student",
+  "hasPets": false,
+  "password": "Test@123"
+}
+
+### TEST - Multiple Validation Errors
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "",
+  "lastName": "",
+  "email": "wrong",
+  "phone": "123",
+  "gender": "Unknown",
+  "occupation": "",
+  "age": 15,
+  "tenantType": "Something",
+  "hasPets": null,
+  "password": "123"
+}
