@@ -1,6 +1,6 @@
 
         package com.rental.smart_property_rental.service;
-
+import com.rental.smart_property_rental.dto.LandlordUpdateRequest;
 import com.rental.smart_property_rental.dto.LandlordRegisterRequest;
 import com.rental.smart_property_rental.model.Landlord;
 import com.rental.smart_property_rental.repository.LandlordRepository;
@@ -115,6 +115,37 @@ public class LandlordService {
 
         return landlordRepository.save(landlord);
     }
+    //Update email
+    public Landlord updateLandlord(
+            String landlordId,
+            LandlordUpdateRequest request) {
+
+        Landlord landlord =
+                landlordRepository.findByLandlordId(landlordId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Landlord not found"));
+
+        // Check whether the new email already belongs to another landlord
+        landlordRepository.findByEmail(request.getEmail())
+                .ifPresent(existingLandlord -> {
+
+                    if (!existingLandlord.getLandlordId()
+                            .equals(landlord.getLandlordId())) {
+
+                        throw new RuntimeException(
+                                "Email already registered"
+                        );
+                    }
+                });
+
+        landlord.setFirstName(request.getFirstName());
+        landlord.setLastName(request.getLastName());
+        landlord.setEmail(request.getEmail());
+        landlord.setPhone(request.getPhone());
+
+        return landlordRepository.save(landlord);
+    }
+
 
 }
 

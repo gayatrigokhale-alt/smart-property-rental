@@ -1,5 +1,6 @@
 package com.rental.smart_property_rental.service;
 
+import com.rental.smart_property_rental.exception.InvalidCredentialsException;
 import com.rental.smart_property_rental.dto.UpdateTenantRequest;
 import com.rental.smart_property_rental.model.Tenant;
 import com.rental.smart_property_rental.repository.TenantRepository;
@@ -12,9 +13,13 @@ import java.util.Optional;
 public class TenantService {
 
     private final TenantRepository tenantRepository;
+    private final PasswordService passwordService;
 
-    public TenantService(TenantRepository tenantRepository) {
+    public TenantService(TenantRepository tenantRepository,
+                         PasswordService passwordService) {
+
         this.tenantRepository = tenantRepository;
+        this.passwordService = passwordService;
     }
 
     public List<Tenant> getAllTenants() {
@@ -76,5 +81,24 @@ public class TenantService {
 
     public void deleteTenant(String id) {
         tenantRepository.deleteById(id);
+    }
+
+    // Tenant login
+    public Tenant login(String email, String password) {
+
+        Tenant tenant = tenantRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Invalid email or password"));
+
+        boolean passwordCorrect = passwordService.verifyPassword(
+                password,
+                tenant.getPasswordHash()
+        );
+
+        if (!passwordCorrect) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+
+        return tenant;
     }
 }

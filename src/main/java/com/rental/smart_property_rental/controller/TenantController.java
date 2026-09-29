@@ -1,9 +1,13 @@
 package com.rental.smart_property_rental.controller;
 
 import jakarta.validation.Valid;
+
+import com.rental.smart_property_rental.dto.LoginRequest;
+import com.rental.smart_property_rental.dto.TenantLoginResponse;
 import com.rental.smart_property_rental.dto.UpdateTenantRequest;
 import com.rental.smart_property_rental.model.Tenant;
 import com.rental.smart_property_rental.service.TenantService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,36 +24,84 @@ public class TenantController {
         this.tenantService = tenantService;
     }
 
+    // =========================================================
+    // TENANT LOGIN
+    // =========================================================
+
+    @PostMapping("/login")
+    public ResponseEntity<TenantLoginResponse> login(
+            @RequestBody LoginRequest request) {
+
+        Tenant tenant = tenantService.login(
+                request.getEmail(),
+                request.getPassword()
+        );
+
+        TenantLoginResponse response = new TenantLoginResponse(
+                tenant.getTenantId(),
+                tenant.getFirstName(),
+                tenant.getLastName(),
+                tenant.getEmail()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // =========================================================
+    // GET ALL TENANTS
+    // =========================================================
+
     @GetMapping
     public List<Tenant> getAllTenants() {
         return tenantService.getAllTenants();
     }
 
+    // =========================================================
+    // GET TENANT BY ID
+    // =========================================================
+
     @GetMapping("/{id}")
-    public ResponseEntity<Tenant> getTenantById(@PathVariable String id) {
+    public ResponseEntity<Tenant> getTenantById(
+            @PathVariable String id) {
+
         return tenantService.getTenantById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // =========================================================
+    // GET TENANT PROFILE BY EMAIL
+    // =========================================================
+
     @GetMapping("/profile/{email}")
-    public ResponseEntity<?> getProfile(@PathVariable String email) {
+    public ResponseEntity<?> getProfile(
+            @PathVariable String email) {
+
         try {
+
             Tenant tenant = tenantService.getTenantByEmail(email);
+
             return ResponseEntity.ok(tenant);
+
         } catch (RuntimeException e) {
+
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
         }
     }
 
+    // =========================================================
+    // UPDATE TENANT PROFILE
+    // =========================================================
+
     @PutMapping("/profile/{email}")
     public ResponseEntity<?> updateProfile(
             @PathVariable String email,
-            @Valid  @RequestBody UpdateTenantRequest updatedTenant) {
+            @Valid @RequestBody UpdateTenantRequest updatedTenant) {
 
         try {
+
             Tenant tenant = tenantService.updateTenantProfile(
                     email,
                     updatedTenant
@@ -59,7 +111,8 @@ public class TenantController {
 
         } catch (RuntimeException e) {
 
-            if (e.getMessage().equals("Email already registered")) {
+            if ("Email already registered".equals(e.getMessage())) {
+
                 return ResponseEntity
                         .badRequest()
                         .body(e.getMessage());
@@ -71,10 +124,20 @@ public class TenantController {
         }
     }
 
+    // =========================================================
+    // CREATE TENANT
+    // =========================================================
+
     @PostMapping
-    public Tenant createTenant(@RequestBody Tenant tenant) {
+    public Tenant createTenant(
+            @RequestBody Tenant tenant) {
+
         return tenantService.saveTenant(tenant);
     }
+
+    // =========================================================
+    // UPDATE TENANT BY ID
+    // =========================================================
 
     @PutMapping("/{id}")
     public ResponseEntity<Tenant> updateTenant(
@@ -83,7 +146,9 @@ public class TenantController {
 
         return tenantService.getTenantById(id)
                 .map(existingTenant -> {
+
                     tenant.setId(id);
+
                     return ResponseEntity.ok(
                             tenantService.saveTenant(tenant)
                     );
@@ -91,11 +156,18 @@ public class TenantController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // =========================================================
+    // DELETE TENANT
+    // =========================================================
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTenant(@PathVariable String id) {
+    public ResponseEntity<Void> deleteTenant(
+            @PathVariable String id) {
 
         if (tenantService.getTenantById(id).isPresent()) {
+
             tenantService.deleteTenant(id);
+
             return ResponseEntity.noContent().build();
         }
 

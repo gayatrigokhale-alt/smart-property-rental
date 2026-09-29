@@ -889,3 +889,361 @@ Content-Type: application/json
   "email": "rajesh.sharma@rental.test",
   "password": "Landlord@123"
 }
+
+###
+GET http://localhost:8080/api/landlords/
+
+### TC-LANDLORD-02: Retrieve landlord using nonexistent email
+GET http://localhost:8080/api/landlords/profile/nonexistent@rental.test
+
+### TC-LANDLORD-03: Update nonexistent landlord
+PUT http://localhost:8080/api/landlords/L999
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "test.landlord@rental.test",
+  "phone": "9876543210"
+}
+
+### TC-LANDLORD-04: Delete nonexistent landlord
+DELETE http://localhost:8080/api/landlords/L999
+### TC-LANDLORD-05A: Duplicate email during registration
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Duplicate",
+  "lastName": "Test",
+  "email": "rajesh.sharma@rental.test",
+  "phone": "9876543210",
+  "password": "Test@123"
+}
+
+### Test MongoDB connection through existing landlord endpoint
+GET http://localhost:8080/api/landlords
+
+### TC-LANDLORD-05B: Duplicate email during update
+PUT http://localhost:8080/api/landlords/L004
+Content-Type: application/json
+
+{
+  "firstName": "Pooja",
+  "lastName": "Mehta",
+  "email": "rajesh.sharma@rental.test",
+  "phone": "9867012348"
+}
+
+### TC-LANDLORD-05C: Update to a new email
+PUT http://localhost:8080/api/landlords/L002
+Content-Type: application/json
+
+{
+  "firstName": "Neha",
+  "lastName": "Desai",
+  "email": "neha.new@rental.test",
+  "phone": "9867012346"
+}
+
+### TC-LANDLORD-05D: Login using updated email
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "neha.new@rental.test",
+  "password": "Test@123"
+}
+
+### TC-LANDLORD-05E: Login using old email
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "neha.desai@rental.test",
+  "password": "Test@123"
+}
+
+### Invalid landlord ID
+PUT http://localhost:8080//api/landlords/L999
+
+### TC-LANDLORD-03: Update nonexistent landlord
+PUT http://localhost:8080/api/landlords/L999
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "test.l999@rental.test",
+  "phone": "9876543210"
+}
+
+### TC-LANDLORD-06A: Automatic Landlord_ID generation
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "test.landlord1@rental.test",
+  "phone": "9876543210",
+  "password": "Test@123"
+}
+
+### TC-LANDLORD-06B: Next automatic Landlord_ID
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord2",
+  "email": "test.landlord2@rental.test",
+  "phone": "9876543211",
+  "password": "Test@123"
+}
+
+
+### TC-LANDLORD-07A: Missing first name
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "lastName": "Test",
+  "email": "missing.firstname@rental.test",
+  "phone": "9876543210",
+  "password": "Test@123"
+}
+### TC-LANDLORD-07B: Missing last name
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "email": "missing.lastname@rental.test",
+  "phone": "9876543210",
+  "password": "Test@123"
+}
+### TC-LANDLORD-07C: Missing email
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "phone": "9876543210",
+  "password": "Test@123"
+}
+### TC-LANDLORD-07D: Missing phone
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "missing.phone@rental.test",
+  "password": "Test@123"
+}
+### TC-LANDLORD-07E: Missing password
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "missing.password@rental.test",
+  "phone": "9876543210"
+}
+### TC-LANDLORD-08: Invalid email format
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "not-an-email",
+  "phone": "9876543210",
+  "password": "Test@123"
+}
+### TC-LANDLORD-09: Invalid phone number
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "invalid.phone@rental.test",
+  "phone": "12345",
+  "password": "Test@123"
+}
+### Admin Login
+POST http://localhost:8080/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@rental.test",
+  "password": "YOUR_ADMIN_PASSWORD"
+}
+
+### Admin Login
+POST http://localhost:8080/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@rental.test",
+  "password": "Admin@123"
+}
+
+### Admin Login - Correct Password
+POST http://localhost:8080/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@rental.test",
+  "password": "Admin@123"
+}
+
+### Try Landlord Login as Admin
+POST http://localhost:8080/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "suresh.patil@rental.test",
+  "password": "Test@123"
+}
+
+### Try Tenant Login as Admin
+POST http://localhost:8080/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "rahul.verma@rental.test",
+  "password": "Test@123"
+}
+
+### Try Admin Login as Tenant
+POST http://localhost:8080/api/tenants/login
+Content-Type: application/json
+
+{
+  "email": "admin@rental.test",
+  "password": "Admin@123"
+}
+
+### Try Admin Login as Landlord
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "admin@rental.test",
+  "password": "Admin@123"
+}
+
+### Try Tenant Login as Landlord
+POST http://localhost:8080/api/landlords/login
+Content-Type: application/json
+
+{
+  "email": "ananya.patil@example.com",
+  "password": "Test@123"
+}
+
+### Try Landlord Login as Tenant
+POST http://localhost:8080/api/tenants/login
+Content-Type: application/json
+
+{
+  "email": "suresh.patil@rental.test",
+  "password": "Test@123"
+}
+
+### Genuine Tenant
+POST http://localhost:8080/api/tenants/login
+Content-Type: application/json
+
+{
+  "email": "rahul.verma@rental.test",
+  "password": "Test@123"
+}
+
+###Landlord as a tenant
+POST http://localhost:8080/api/tenants/login
+Content-Type: application/json
+
+{
+  "email": "suresh.patil@rental.test",
+  "password": "Test@123"
+}
+
+### Admin as a tenant
+POST http://localhost:8080/api/tenants/login
+Content-Type: application/json
+
+{
+  "email": "admin@rental.test",
+  "password": "Admin@123"
+}
+
+###Property Section
+GET http://localhost:8080/api/properties
+
+###
+GET http://localhost:8080/api/properties/P001
+###
+GET http://localhost:8080/api/properties/landlord/L001
+X-User-Id: L001
+
+###
+GET http://localhost:8080/api/properties/landlord/L001
+X-User-Id: L002
+
+###
+### Test 5 - Create Property
+POST http://localhost:8080/api/properties
+X-User-Id: L002
+Content-Type: application/json
+
+{
+  "propertyId": "P016",
+  "landlordId": "L001",
+  "propertyType": "Apartment",
+  "location": "Viman Nagar",
+  "city": "Pune",
+  "pincode": "411014",
+  "bhk": 2,
+  "areaSqft": 1000,
+  "numberOfBathrooms": 2,
+  "monthlyRent": 28000,
+  "securityDeposit": 56000,
+  "floorNumber": 4,
+  "furnishingStatus": "Semi-Furnished",
+  "availableFrom": "2026-10-15",
+  "propertyStatus": "Available"
+}
+
+###
+### Test 7 - Update Property
+PUT http://localhost:8080/api/properties/P001
+X-User-Id: L002
+Content-Type: application/json
+
+###
+DELETE http://localhost:8080/api/properties/P001
+X-User-Id: L002
+
+{
+  "propertyId": "P001",
+  "landlordId": "L001",
+  "propertyType": "Apartment",
+  "location": "Kothrud",
+  "city": "Pune",
+  "pincode": "411038",
+  "bhk": 2,
+  "areaSqft": 1000,
+  "numberOfBathrooms": 2,
+  "monthlyRent": 27000,
+  "securityDeposit": 54000,
+  "floorNumber": 3,
+  "furnishingStatus": "Fully Furnished",
+  "availableFrom": "2026-10-01",
+  "propertyStatus": "Available"
+}

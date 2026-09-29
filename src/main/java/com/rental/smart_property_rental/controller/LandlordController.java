@@ -1,6 +1,9 @@
 
         package com.rental.smart_property_rental.controller;
 
+import com.rental.smart_property_rental.dto.LandlordUpdateRequest;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.rental.smart_property_rental.dto.LandlordChangePasswordRequest;
 import com.rental.smart_property_rental.dto.LandlordLoginRequest;
@@ -109,6 +112,46 @@ public class LandlordController {
                     .body(e.getMessage());
         }
     }
+
+    //Landlord profile update
+
+// Landlord profile update
+    @PutMapping("/{landlordId}")
+    public ResponseEntity<?> updateLandlord(
+            @PathVariable String landlordId,
+            @Valid @RequestBody LandlordUpdateRequest request) {
+
+        try {
+
+            Landlord landlord =
+                    landlordService.updateLandlord(
+                            landlordId,
+                            request
+                    );
+
+            return ResponseEntity.ok(landlord);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().equals("Email already registered")) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(e.getMessage());
+            }
+
+            if (e.getMessage().equals("Landlord not found")) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+
 
 }
 
