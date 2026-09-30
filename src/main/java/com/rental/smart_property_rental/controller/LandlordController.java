@@ -35,7 +35,24 @@ public class LandlordController {
     public List<Landlord> getAllLandlords() {
         return landlordService.getAllLandlords();
     }
+    @GetMapping("/{landlordId}")
+    public ResponseEntity<?> getLandlordById(
+            @PathVariable String landlordId) {
 
+        try {
+
+            Landlord landlord =
+                    landlordService.getLandlordById(landlordId);
+
+            return ResponseEntity.ok(landlord);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
     // Landlord registration
     @PostMapping("/register")
     public ResponseEntity<?> registerLandlord(

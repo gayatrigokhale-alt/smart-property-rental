@@ -25,7 +25,12 @@ public class LandlordService {
     public List<Landlord> getAllLandlords() {
         return landlordRepository.findAll();
     }
+    public Landlord getLandlordById(String landlordId) {
 
+        return landlordRepository.findByLandlordId(landlordId)
+                .orElseThrow(() ->
+                        new RuntimeException("Landlord not found"));
+    }
     // Landlord Registration
     public Landlord registerLandlord(LandlordRegisterRequest request) {
 

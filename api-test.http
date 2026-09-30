@@ -1333,3 +1333,336 @@ X-User-Id: T001
 ### Tenant withdraws own application
 PUT http://localhost:8080/api/applications/APP016/withdraw
 X-User-Id: T010
+
+###
+GET http://localhost:8080/api/property-amenities
+
+###Get P001
+GET http://localhost:8080/api/property-amenities/P016
+
+
+###Test authorization
+GET http://localhost:8080/api/property-amenities/P001
+
+###Try updating P001 as L001
+PUT http://localhost:8080/api/property-amenities/P001
+X-User-Id: L001
+Content-Type: application/json
+
+###
+### Test 3 - L001 updates own property's amenities
+
+PUT http://localhost:8080/api/property-amenities/P001
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "propertyId": "P001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004",
+    "A007",
+    "A008",
+    "A011",
+    "A012"
+  ]
+}
+
+### Test 4 - L002 tries to update L001's property
+
+PUT http://localhost:8080/api/property-amenities/P001
+X-User-Id: L002
+Content-Type: application/json
+
+{
+  "propertyId": "P001",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004"
+  ]
+}
+
+###
+
+
+###
+### Test 5 - Invalid amenity ID
+
+PUT http://localhost:8080/api/property-amenities/P001
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "propertyId": "P001",
+  "amenityIds": [
+    "A001",
+    "A999"
+  ]
+}
+
+###
+PUT http://localhost:8080/api/property-amenities/P001
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "propertyId": "P001",
+  "amenityIds": [
+    "A001",
+    "A999"
+  ]
+}
+
+###
+GET http://localhost:8080/api/property-amenities/P001
+
+###
+PUT http://localhost:8080/api/property-amenities/P001
+
+###
+GET http://localhost:8080/api/properties/search/T010
+X-User-Id: T010
+###
+GET http://localhost:8080/api/properties/search/T010
+X-User-Id: T001
+
+###
+GET http://localhost:8080/api/properties/search/T010
+
+###
+GET http://localhost:8080/api/properties/search/T004
+X-User-Id: T004
+
+###Application
+### T010 applies for P012
+POST http://localhost:8080/api/applications
+Content-Type: application/json
+X-User-Id: T010
+
+{
+  "tenantId": "T010",
+  "propertyId": "P012",
+  "moveInDate": "2026-10-12",
+  "numberOfOccupants": 2
+}
+
+###Lease
+### LEASE 1 - Check Application
+GET http://localhost:8080/api/applications/APP001
+
+###
+### LEASE 2 - Create Lease
+POST http://localhost:8080/api/leases
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "applicationId": "APP001",
+  "startDate": "2026-10-15",
+  "endDate": "2027-10-14",
+  "monthlyRent": 27000,
+  "securityDeposit": 54000
+}
+
+### L005 views applications for P012
+GET http://localhost:8080/api/applications/property/P012
+X-User-Id: L005
+
+### L005 approves APP010
+PUT http://localhost:8080/api/applications/APP010/status
+Content-Type: application/json
+X-User-Id: L005
+
+{
+  "applicationStatus": "Approved"
+}
+
+### Verify APP010
+GET http://localhost:8080/api/applications/APP010
+
+### LEASE 3 - Get All
+GET http://localhost:8080/api/leases
+
+### LEASE 4 - Get By ID
+GET http://localhost:8080/api/leases/LEASE001
+
+### LEASE 5 - Get By Tenant
+GET http://localhost:8080/api/leases/tenant/T010
+
+### LEASE 6 - Get By Property
+GET http://localhost:8080/api/leases/property/P001
+
+### LEASE 7 - Update Lease
+PUT http://localhost:8080/api/leases/LEASE001
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "startDate": "2026-10-20",
+  "endDate": "2027-10-19",
+  "monthlyRent": 28000,
+  "securityDeposit": 56000
+}
+
+### LEASE 9 - Terminate Lease
+PUT http://localhost:8080/api/leases/LEASE002/terminate
+X-User-Id: L001
+
+### Verify APP010
+GET http://localhost:8080/api/applications/APP010
+
+### L001 rejects APP002
+PUT http://localhost:8080/api/applications/APP002/status
+Content-Type: application/json
+X-User-Id: L001
+
+{
+  "applicationStatus": "Rejected"
+}
+
+### Lease - Get By ID
+GET http://localhost:8080/api/leases/LSE001
+
+### Wrong landlord tries to modify APP010
+PUT http://localhost:8080/api/applications/APP010/status
+Content-Type: application/json
+X-User-Id: L001
+
+{
+  "applicationStatus": "Rejected"
+}
+
+### LEASE 5 - Get By Tenant
+GET http://localhost:8080/api/leases/tenant/T001
+
+### LEASE 6 - Get By Property
+GET http://localhost:8080/api/leases/property/P001
+### LEASE 7 - Update Lease
+PUT http://localhost:8080/api/leases/LSE001
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "startDate": "2026-10-20",
+  "endDate": "2027-10-19",
+  "monthlyRent": 28000,
+  "securityDeposit": 56000
+}
+
+### LEASE 8 - Complete Lease
+PUT http://localhost:8080/api/leases/LSE001/complete
+X-User-Id: L001
+
+### LEASE 9 - Terminate Lease
+PUT http://localhost:8080/api/leases/LSE002/terminate
+X-User-Id: L001
+
+### LEASE 1 - Check Application
+GET http://localhost:8080/api/applications/APP001
+
+### LEASE 2 - Get By ID
+GET http://localhost:8080/api/leases/LSE001
+
+
+### LEASE 5 - Get By Tenant
+GET http://localhost:8080/api/leases/tenant/T001
+
+
+### LEASE 6 - Get By Property
+GET http://localhost:8080/api/leases/property/P001
+
+### LEASE 7 - Update Lease
+PUT http://localhost:8080/api/leases/LSE001
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "startDate": "2026-10-20",
+  "endDate": "2027-10-19",
+  "monthlyRent": 28000,
+  "securityDeposit": 56000
+}
+
+### Update active lease
+PUT http://localhost:8080/api/leases/LSE002
+X-User-Id: L002
+Content-Type: application/json
+
+{
+  "startDate": "2026-10-10",
+  "endDate": "2027-10-09",
+  "monthlyRent": 23000,
+  "securityDeposit": 46000
+}
+
+### Wrong landlord tries to update LSE002
+PUT http://localhost:8080/api/leases/LSE002
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "startDate": "2026-10-15",
+  "endDate": "2027-10-14",
+  "monthlyRent": 25000,
+  "securityDeposit": 50000
+}
+
+### Terminate LSE002
+PUT http://localhost:8080/api/leases/LSE002/terminate
+X-User-Id: L002
+
+
+### Create Lease from approved APP010
+POST http://localhost:8080/api/leases
+X-User-Id: L005
+Content-Type: application/json
+
+{
+  "applicationId": "APP010",
+  "startDate": "2026-10-12",
+  "endDate": "2027-10-11",
+  "monthlyRent": 26000,
+  "securityDeposit": 52000
+}
+
+### Wrong landlord tries to create lease
+POST http://localhost:8080/api/leases
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "applicationId": "APP010",
+  "startDate": "2026-10-12",
+  "endDate": "2027-10-11",
+  "monthlyRent": 26000,
+  "securityDeposit": 52000
+}
+
+### Duplicate lease should be rejected
+POST http://localhost:8080/api/leases
+X-User-Id: L005
+Content-Type: application/json
+
+{
+  "applicationId": "APP010",
+  "startDate": "2026-10-12",
+  "endDate": "2027-10-11",
+  "monthlyRent": 26000,
+  "securityDeposit": 52000
+}
+###
+http://localhost:8080/
+###
+POST http://localhost:8080/api/leases
+Content-Type: application/json
+X-User-Id: L003
+
+{
+  "applicationId": "APP006",
+  "startDate": "2026-10-10",
+  "endDate": "2027-10-09",
+  "monthlyRent": 24000,
+  "securityDeposit": 48000
+}

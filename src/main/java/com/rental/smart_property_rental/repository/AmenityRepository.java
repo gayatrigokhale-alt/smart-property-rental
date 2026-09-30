@@ -12,4 +12,5 @@ public interface AmenityRepository
     Optional<Amenity> findByAmenityId(String amenityId);
 
     List<Amenity> findByAmenityIdIn(List<String> amenityIds);
+    boolean existsByAmenityId(String amenityId);
 }

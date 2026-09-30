@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Property Rental</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="app">
+
+    <!-- LOGIN PAGE -->
+    <section id="loginPage" class="page">
+        <div class="login-container">
+
+            <div class="login-brand">
+                <h1>Smart Property Rental</h1>
+                <p>Find. Apply. Rent.</p>
+            </div>
+
+            <div class="login-card">
+                <h2>Login</h2>
+                <p class="subtitle">Access your rental dashboard</p>
+
+                <label for="role">Login As</label>
+                <select id="role">
+                    <option value="tenant">Tenant</option>
+                    <option value="landlord">Landlord</option>
+                    <option value="admin">Admin</option>
+                </select>
+
+                <label for="loginEmail">Email</label>
+                <input
+                        type="email"
+                        id="loginEmail"
+                        placeholder="Enter your email"
+                >
+
+                <label for="loginPassword">Password</label>
+                <input
+                        type="password"
+                        id="loginPassword"
+                        placeholder="Enter your password"
+                >
+
+                <button onclick="login()" class="primary-btn">
+                    Login
+                </button>
+
+                <p id="loginMessage" class="message"></p>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- MAIN APPLICATION -->
+    <section id="mainPage" class="page hidden">
+
+        <!-- NAVBAR -->
+        <nav class="navbar">
+
+            <div class="navbar-brand">
+                <span class="logo">🏠</span>
+                <span>Smart Property Rental</span>
+            </div>
+
+            <div class="navbar-user">
+                <span id="welcomeText"></span>
+                <button onclick="logout()" class="logout-btn">
+                    Logout
+                </button>
+            </div>
+
+        </nav>
+
+
+        <!-- TENANT DASHBOARD -->
+        <main id="tenantDashboard" class="dashboard hidden">
+
+            <div class="dashboard-header">
+                <div>
+                    <h1>Tenant Dashboard</h1>
+                    <p>Find a property that matches your preferences.</p>
+                </div>
+
+                <button onclick="loadTenantDashboard()" class="secondary-btn">
+                    Refresh
+                </button>
+            </div>
+
+
+            <!-- TENANT PROFILE -->
+            <div class="section-card">
+                <h2>My Profile</h2>
+
+                <div id="tenantProfile" class="profile-grid">
+                    Loading...
+                </div>
+            </div>
+
+
+            <!-- PROPERTY SEARCH -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>Matching Properties</h2>
+                        <p>Properties matching your saved preferences</p>
+                    </div>
+
+                    <button onclick="searchProperties()" class="primary-btn small-btn">
+                        Search
+                    </button>
+                </div>
+
+                <div id="propertyResults" class="property-grid">
+                    <div class="loading">
+                        Click Search to find matching properties.
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- APPLICATIONS -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>My Applications</h2>
+                        <p>Track your rental applications</p>
+                    </div>
+
+                    <button onclick="loadTenantApplications()" class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="tenantApplications">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- LEASES -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>My Leases</h2>
+                        <p>View your active and completed leases</p>
+                    </div>
+
+                    <button onclick="loadTenantLeases()" class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="tenantLeases">
+                    Loading...
+                </div>
+
+            </div>
+
+        </main>
+
+
+        <!-- LANDLORD DASHBOARD -->
+        <main id="landlordDashboard" class="dashboard hidden">
+
+            <div class="dashboard-header">
+                <div>
+                    <h1>Landlord Dashboard</h1>
+                    <p>Manage your properties and rental applications.</p>
+                </div>
+
+                <button onclick="loadLandlordDashboard()" class="secondary-btn">
+                    Refresh
+                </button>
+            </div>
+
+
+            <!-- LANDLORD PROFILE -->
+            <div class="section-card">
+                <h2>My Profile</h2>
+
+                <div id="landlordProfile" class="profile-grid">
+                    Loading...
+                </div>
+            </div>
+
+
+            <!-- PROPERTIES -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>My Properties</h2>
+                        <p>Properties listed under your account</p>
+                    </div>
+
+                    <button onclick="loadLandlordProperties()" class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="landlordProperties" class="property-grid">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- APPLICATIONS -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>Applications</h2>
+                        <p>Review applications for your properties</p>
+                    </div>
+
+                    <button onclick="loadLandlordApplications()" class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="landlordApplications">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- LEASES -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>Leases</h2>
+                        <p>View leases for your properties</p>
+                    </div>
+
+                    <button onclick="loadLandlordLeases()" class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="landlordLeases">
+                    Loading...
+                </div>
+
+            </div>
+
+        </main>
+
+
+        <!-- ADMIN DASHBOARD -->
+        <main id="adminDashboard" class="dashboard hidden">
+
+            <div class="dashboard-header">
+                <div>
+                    <h1>Admin Dashboard</h1>
+                    <p>System administration overview.</p>
+                </div>
+            </div>
+
+            <div class="admin-grid">
+
+                <div class="stat-card">
+                    <div class="stat-icon">👤</div>
+                    <h3>Administrator</h3>
+                    <p id="adminName">System Administrator</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🏠</div>
+                    <h3>Property Rental System</h3>
+                    <p>System is operational</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🔐</div>
+                    <h3>Authentication</h3>
+                    <p>Role-based access enabled</p>
+                </div>
+
+            </div>
+
+        </main>
+
+    </section>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

@@ -208,3 +208,4 @@ public class TenantAmenityPreferenceService {
                 .deleteById(id);
     }
 }
+
