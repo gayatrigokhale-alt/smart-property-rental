@@ -1247,3 +1247,89 @@ X-User-Id: L002
   "availableFrom": "2026-10-01",
   "propertyStatus": "Available"
 }
+###Get all applications
+GET http://localhost:8080/api/applications
+
+###Get 1 application
+GET http://localhost:8080/api/applications/APP001
+
+### Test tenant authorization
+GET http://localhost:8080/api/applications/tenant/T010
+X-User-Id: T010
+
+###Testing the wrong tenant
+GET http://localhost:8080/api/applications/tenant/T010
+X-User-Id: T001
+
+###Test landlord authentication
+GET http://localhost:8080/api/applications/property/P001
+X-User-Id: L001
+
+###Test wrong landlord
+GET http://localhost:8080/api/applications/property/P001
+X-User-Id: L002
+
+###Create new application
+POST http://localhost:8080/api/applications
+X-User-Id: T010
+Content-Type: application/json
+
+{
+  "tenantId": "T010",
+  "propertyId": "P001",
+  "proposedMoveInDate": "2026-10-15",
+  "numberOfOccupants": 2,
+  "applicationStatus": "Approved"
+}
+
+### Step 6 — Test duplicate prevention
+POST http://localhost:8080/api/applications
+X-User-Id: T010
+Content-Type: application/json
+
+{
+  "tenantId": "T010",
+  "propertyId": "P001",
+  "proposedMoveInDate": "2026-10-15",
+  "numberOfOccupants": 2
+}
+
+###Step 7 — Test landlord approving the application
+PUT http://localhost:8080/api/applications/APP016/status
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+### Landlord rejects application
+PUT http://localhost:8080/api/applications/APP016/status
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "applicationStatus": "Rejected"
+}
+###Non existent application
+PUT http://localhost:8080/api/applications/APP999/withdraw
+X-User-Id: T010
+
+###New again
+POST http://localhost:8080/api/applications
+X-User-Id: T010
+Content-Type: application/json
+
+{
+  "tenantId": "T010",
+  "propertyId": "P001",
+  "proposedMoveInDate": "2026-10-15",
+  "numberOfOccupants": 2,
+  "applicationStatus": "Approved"
+}
+###Tenant withdraws application
+PUT http://localhost:8080/api/applications/APP016/withdraw
+X-User-Id: T001
+
+### Tenant withdraws own application
+PUT http://localhost:8080/api/applications/APP016/withdraw
+X-User-Id: T010
