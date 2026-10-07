@@ -1,107 +1,32 @@
-package com.rental.smart_property_rental.model;
+package com.rental.smart_property_rental.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import java.util.List;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+public class PropertyResponse {
 
-@Document(collection = "PROPERTY")
-public class Property {
-
-    @Id
-    private String id;
-
-    @Field("Property_ID")
-    @NotBlank(message = "Property_ID is required")
     private String propertyId;
-
-    @Field("Landlord_ID")
-    @NotBlank(message = "Landlord_ID is required")
     private String landlordId;
-
-    @Field("Property_Type")
-    @NotBlank(message = "Property type is required")
     private String propertyType;
-
-    @Field("Location")
-    @NotBlank(message = "Location is required")
     private String location;
-
-    @Field("City")
-    @NotBlank(message = "City is required")
     private String city;
-
-    @Field("Pincode")
-    @NotBlank(message = "Pincode is required")
-    @Pattern(
-            regexp = "^[1-9][0-9]{5}$",
-            message = "Enter a valid 6-digit pincode"
-    )
     private String pincode;
 
-    @Field("BHK")
-    @NotNull(message = "BHK is required")
-    @Min(value = 1, message = "BHK must be at least 1")
     private Integer bhk;
-
-    @Field("Area_sqft")
-    @NotNull(message = "Area is required")
-    @Min(value = 1, message = "Area must be greater than 0")
     private Integer areaSqft;
-
-    @Field("Number_of_Bathrooms")
-    @NotNull(message = "Number of bathrooms is required")
-    @Min(value = 1, message = "Number of bathrooms must be at least 1")
     private Integer numberOfBathrooms;
 
-    @Field("Monthly_Rent")
-    @NotNull(message = "Monthly rent is required")
-    @Min(value = 1, message = "Monthly rent must be greater than 0")
     private Integer monthlyRent;
-
-    @Field("Security_Deposit")
-    @NotNull(message = "Security deposit is required")
-    @Min(value = 0, message = "Security deposit cannot be negative")
     private Integer securityDeposit;
 
-    @Field("Floor_Number")
-    @NotNull(message = "Floor number is required")
-    @Min(value = 0, message = "Floor number cannot be negative")
     private Integer floorNumber;
-
-    @Field("Furnishing_Status")
-    @NotBlank(message = "Furnishing status is required")
     private String furnishingStatus;
-
-    @Field("Available_From")
-    @NotBlank(message = "Available from date is required")
-    @Pattern(
-            regexp = "^\\d{4}-\\d{2}-\\d{2}$",
-            message = "Available from must be in YYYY-MM-DD format"
-    )
     private String availableFrom;
-
-    @Field("Property_Status")
-    @NotBlank(message = "Property status is required")
     private String propertyStatus;
 
-
-    public Property() {
-    }
+    private List<String> amenities;
 
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
+    // Property ID
     public String getPropertyId() {
         return propertyId;
     }
@@ -110,6 +35,8 @@ public class Property {
         this.propertyId = propertyId;
     }
 
+
+    // Landlord ID
     public String getLandlordId() {
         return landlordId;
     }
@@ -118,6 +45,8 @@ public class Property {
         this.landlordId = landlordId;
     }
 
+
+    // Property Type
     public String getPropertyType() {
         return propertyType;
     }
@@ -126,6 +55,8 @@ public class Property {
         this.propertyType = propertyType;
     }
 
+
+    // Location
     public String getLocation() {
         return location;
     }
@@ -134,6 +65,8 @@ public class Property {
         this.location = location;
     }
 
+
+    // City
     public String getCity() {
         return city;
     }
@@ -142,6 +75,8 @@ public class Property {
         this.city = city;
     }
 
+
+    // Pincode
     public String getPincode() {
         return pincode;
     }
@@ -150,6 +85,8 @@ public class Property {
         this.pincode = pincode;
     }
 
+
+    // BHK
     public Integer getBhk() {
         return bhk;
     }
@@ -158,6 +95,8 @@ public class Property {
         this.bhk = bhk;
     }
 
+
+    // Area
     public Integer getAreaSqft() {
         return areaSqft;
     }
@@ -166,6 +105,8 @@ public class Property {
         this.areaSqft = areaSqft;
     }
 
+
+    // Number of Bathrooms
     public Integer getNumberOfBathrooms() {
         return numberOfBathrooms;
     }
@@ -174,6 +115,8 @@ public class Property {
         this.numberOfBathrooms = numberOfBathrooms;
     }
 
+
+    // Monthly Rent
     public Integer getMonthlyRent() {
         return monthlyRent;
     }
@@ -182,6 +125,8 @@ public class Property {
         this.monthlyRent = monthlyRent;
     }
 
+
+    // Security Deposit
     public Integer getSecurityDeposit() {
         return securityDeposit;
     }
@@ -190,6 +135,8 @@ public class Property {
         this.securityDeposit = securityDeposit;
     }
 
+
+    // Floor Number
     public Integer getFloorNumber() {
         return floorNumber;
     }
@@ -198,6 +145,8 @@ public class Property {
         this.floorNumber = floorNumber;
     }
 
+
+    // Furnishing Status
     public String getFurnishingStatus() {
         return furnishingStatus;
     }
@@ -206,6 +155,8 @@ public class Property {
         this.furnishingStatus = furnishingStatus;
     }
 
+
+    // Available From
     public String getAvailableFrom() {
         return availableFrom;
     }
@@ -214,11 +165,23 @@ public class Property {
         this.availableFrom = availableFrom;
     }
 
+
+    // Property Status
     public String getPropertyStatus() {
         return propertyStatus;
     }
 
     public void setPropertyStatus(String propertyStatus) {
         this.propertyStatus = propertyStatus;
+    }
+
+
+    // Amenities
+    public List<String> getAmenities() {
+        return amenities;
+    }
+
+    public void setAmenities(List<String> amenities) {
+        this.amenities = amenities;
     }
 }

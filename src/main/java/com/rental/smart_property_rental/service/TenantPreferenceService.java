@@ -2,6 +2,7 @@ package com.rental.smart_property_rental.service;
 
 import com.rental.smart_property_rental.model.TenantPreference;
 import com.rental.smart_property_rental.repository.TenantPreferenceRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,11 +14,13 @@ public class TenantPreferenceService {
 
     public TenantPreferenceService(
             TenantPreferenceRepository tenantPreferenceRepository) {
+
         this.tenantPreferenceRepository = tenantPreferenceRepository;
     }
 
     // GET
-    public Optional<TenantPreference> getPreferencesByTenantId(String tenantId) {
+    public Optional<TenantPreference> getPreferencesByTenantId(
+            String tenantId) {
 
         return tenantPreferenceRepository.findByTenantId(tenantId);
     }
@@ -25,6 +28,8 @@ public class TenantPreferenceService {
     // CREATE
     public TenantPreference createPreferences(
             TenantPreference preference) {
+
+        validateBudgetRange(preference);
 
         // A tenant can have only one preference document
         if (tenantPreferenceRepository
@@ -38,7 +43,6 @@ public class TenantPreferenceService {
         }
 
         // Preference_ID must be entered
-        // by the user
         if (preference.getPreferenceId() == null ||
                 preference.getPreferenceId().isBlank()) {
 
@@ -63,17 +67,18 @@ public class TenantPreferenceService {
                                 )
                         );
 
-        // Keep the existing Preference_ID
+        validateBudgetRange(updatedPreference);
+
+        // Keep existing Preference_ID
         existingPreference.setPreferenceId(
                 existingPreference.getPreferenceId()
         );
 
-        // Keep the existing Tenant_ID
+        // Keep existing Tenant_ID
         existingPreference.setTenantId(
                 existingPreference.getTenantId()
         );
 
-        // Update preference fields
         existingPreference.setPreferredLocation(
                 updatedPreference.getPreferredLocation()
         );
@@ -128,6 +133,34 @@ public class TenantPreferenceService {
     // DELETE
     public void deletePreferences(String id) {
 
+        if (!tenantPreferenceRepository.existsById(id)) {
+            throw new RuntimeException(
+                    "Preferences not found"
+            );
+        }
+
         tenantPreferenceRepository.deleteById(id);
+    }
+
+    // =====================================================
+    // VALIDATION
+    // =====================================================
+
+    private void validateBudgetRange(
+            TenantPreference preference) {
+
+        if (preference.getMinimumBudget() == null ||
+                preference.getMaximumBudget() == null) {
+
+            return;
+        }
+
+        if (preference.getMinimumBudget()
+                > preference.getMaximumBudget()) {
+
+            throw new IllegalArgumentException(
+                    "Minimum budget cannot be greater than maximum budget"
+            );
+        }
     }
 }

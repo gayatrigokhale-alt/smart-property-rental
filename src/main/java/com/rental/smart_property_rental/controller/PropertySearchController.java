@@ -1,6 +1,6 @@
 package com.rental.smart_property_rental.controller;
 
-import com.rental.smart_property_rental.model.Property;
+import com.rental.smart_property_rental.dto.PropertyResponse;
 import com.rental.smart_property_rental.service.PropertySearchService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +30,7 @@ public class PropertySearchController {
 
         // Authentication check
         if (userId == null || userId.isBlank()) {
+
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("{\"error\":\"User ID is required\"}");
@@ -37,12 +38,13 @@ public class PropertySearchController {
 
         // Authorization check
         if (!tenantId.equals(userId)) {
+
             return ResponseEntity
                     .status(HttpStatus.FORBIDDEN)
                     .body("{\"error\":\"You can only search properties using your own tenant ID\"}");
         }
 
-        List<Property> properties =
+        List<PropertyResponse> properties =
                 propertySearchService.searchProperties(tenantId);
 
         return ResponseEntity.ok(properties);

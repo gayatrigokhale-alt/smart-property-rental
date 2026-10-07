@@ -9,4 +9,6 @@ public interface TenantAmenityPreferenceRepository
         extends MongoRepository<TenantAmenityPreference, String> {
 
     Optional<TenantAmenityPreference> findByTenantId(String tenantId);
+
+    void deleteByTenantId(String tenantId);
 }

@@ -3,6 +3,7 @@ package com.rental.smart_property_rental;
 import com.rental.smart_property_rental.exception.InvalidRequestException;
 import com.rental.smart_property_rental.exception.UnauthorizedActionException;
 import com.rental.smart_property_rental.exception.InvalidCredentialsException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -53,17 +54,24 @@ public class GlobalExceptionHandler {
             UnauthorizedActionException exception) {
 
         Map<String, String> error = new HashMap<>();
+
         error.put("error", exception.getMessage());
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(error);
     }
+
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<Map<String, String>> handleInvalidRequest(
             InvalidRequestException exception) {
 
         Map<String, String> error = new HashMap<>();
+
         error.put("error", exception.getMessage());
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
     }
 }

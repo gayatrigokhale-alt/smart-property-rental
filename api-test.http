@@ -1565,6 +1565,14 @@ GET http://localhost:8080/api/applications/APP001
 ### LEASE 2 - Get By ID
 GET http://localhost:8080/api/leases/LSE001
 
+###
+GET http://localhost:8080/api/applications/property/P006
+X-User-Id: L003
+
+### Pending landlord trying to view applications
+GET http://localhost:8080/api/applications/property/P006
+X-User-Id: L003
+
 
 ### LEASE 5 - Get By Tenant
 GET http://localhost:8080/api/leases/tenant/T001
@@ -1665,4 +1673,522 @@ X-User-Id: L003
   "endDate": "2027-10-09",
   "monthlyRent": 24000,
   "securityDeposit": 48000
+}
+
+### T006 tries to apply to P007 owned by pending L003
+POST http://localhost:8080/api/applications
+Content-Type: application/json
+X-User-Id: T006
+
+{
+  "tenantId": "T006",
+  "propertyId": "P007",
+  "proposedMoveInDate": "2026-10-01",
+  "numberOfOccupants": 1
+}
+###
+GET http://localhost:8080/api/properties/available
+
+###
+GET http://localhost:8080/api/properties/search/T006
+X-User-Id: T006
+
+### Create Tenant
+POST http://localhost:8080/api/tenants
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Tenant",
+  "email": "test.tenant@rental.test",
+  "phone": "9876543210",
+  "gender": "Male",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Student",
+  "hasPets": false,
+  "password": "Test@123"
+}
+
+### Login with newly created tenant
+POST http://localhost:8080/api/tenants/login
+Content-Type: application/json
+
+{
+  "email": "test.tenant@rental.test",
+  "password": "Test@123"
+}
+###
+http://localhost:8080/api/tenants
+
+###
+### Delete test tenant
+DELETE http://localhost:8080/api/tenants/T011
+###
+GET http://localhost:8080/api/tenants/T011
+
+###
+### Create test tenant for UPDATE test
+POST http://localhost:8080/api/tenants
+Content-Type: application/json
+
+{
+  "firstName": "Update",
+  "lastName": "Test",
+  "email": "update.test@rental.test",
+  "phone": "9876543210",
+  "gender": "Male",
+  "occupation": "Student",
+  "age": 21,
+  "tenantType": "Student",
+  "hasPets": false,
+  "password": "Test@123"
+}
+
+### Update tenant profile
+PUT http://localhost:8080/api/tenants/profile/update.test@rental.test
+Content-Type: application/json
+
+{
+  "firstName": "Updated",
+  "lastName": "Tenant",
+  "email": "update.test@rental.test",
+  "phone": "9123456789",
+  "gender": "Male",
+  "occupation": "Software Engineer",
+  "age": 25,
+  "tenantType": "Working Professional",
+  "hasPets": true
+}
+
+###
+DELETE http://localhost:8080/api/tenants/T011
+
+###
+### Get T014 preferences
+GET http://localhost:8080/api/tenant-preferences/T014
+X-User-Id: T014
+
+
+### Create preferences for T014
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+X-User-Id: T014
+
+{
+  "preferenceId": "PR014",
+  "tenantId": "T014",
+  "preferredLocation": "Baner",
+  "minimumBudget": 20000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 900,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+### Get T014 preferences
+### Create new landlord for property onboarding test
+POST http://localhost:8080/api/landlords/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "test.landlord@rental.test",
+  "phone": "9876543210",
+  "password": "Test@123"
+}
+
+###
+### Create property for new landlord
+POST http://localhost:8080/api/properties
+Content-Type: application/json
+X-User-Id: L006
+
+{
+  "propertyId": "P016",
+  "landlordId": "L006",
+  "propertyType": "Apartment",
+  "location": "Baner",
+  "city": "Pune",
+  "pincode": "411045",
+  "bhk": 2,
+  "areaSqft": 1000,
+  "numberOfBathrooms": 2,
+  "monthlyRent": 25000,
+  "securityDeposit": 50000,
+  "floorNumber": 3,
+  "furnishingStatus": "Fully Furnished",
+  "availableFrom": "2026-10-15",
+  "propertyStatus": "Available"
+}
+
+### Get all amenities
+GET http://localhost:8080/api/amenities
+
+### Add amenities to property
+POST http://localhost:8080/api/property-amenities
+Content-Type: application/json
+X-User-Id: L006
+
+{
+  "propertyId": "P016",
+  "amenityIds": [
+    "A001",
+    "A003",
+    "A004",
+    "A007"
+  ]
+}
+
+### Get property amenities
+GET http://localhost:8080/api/property-amenities/P016
+X-User-Id: L006
+
+### Get properties for L006
+GET http://localhost:8080/api/properties/landlord/L006
+X-User-Id: L006
+
+###
+### Update own property
+PUT http://localhost:8080/api/properties/P016
+X-User-Id: L005
+Content-Type: application/json
+
+{
+  "propertyId": "P016",
+  "landlordId": "L006",
+  "propertyType": "Apartment",
+  "location": "Baner",
+  "city": "Pune",
+  "pincode": "411045",
+  "bhk": 2,
+  "areaSqft": 1100,
+  "numberOfBathrooms": 2,
+  "monthlyRent": 26000,
+  "securityDeposit": 52000,
+  "floorNumber": 3,
+  "furnishingStatus": "Fully Furnished",
+  "availableFrom": "2026-10-15",
+  "propertyStatus": "Available"
+}
+
+###
+DELETE http://localhost:8080/api/properties/P001
+X-User-Id: L006
+
+###
+DELETE http://localhost:8080/api/properties/P001
+
+###
+PUT http://localhost:8080/api/landlords/L006
+X-User-Id: L006
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord Updated",
+  "email": "test.landlord@rental.test",
+  "phone": "9876543210"
+}
+
+###
+PUT http://localhost:8080/api/landlords/L006
+X-User-Id: L005
+Content-Type: application/json
+
+{
+  "firstName": "Hacker",
+  "lastName": "Test",
+  "email": "hacker@rental.test",
+  "phone": "9876543210"
+}
+
+###
+PUT http://localhost:8080/api/landlords/L006
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Landlord",
+  "email": "test.landlord@rental.test",
+  "phone": "9876543210"
+}
+
+###
+### Delete own property
+DELETE http://localhost:8080/api/properties/P016
+X-User-Id: L006
+
+###
+DELETE http://localhost:8080/api/properties/P006
+X-User-Id: L003
+
+####
+DELETE http://localhost:8080/api/landlords/L003
+X-User-Id: L003
+
+###
+DELETE http://localhost:8080/api/landlords/L006
+X-User-Id: L006
+
+###
+GET http://localhost:8080/api/properties/landlord/L006
+X-User-Id: L006
+
+###
+GET http://localhost:8080/api/properties/P016
+
+###
+### TEST: Tenant with pending application cannot delete account
+DELETE http://localhost:8080/api/tenants/T006
+X-User-Id: T006
+
+###
+### TEST: Tenant with pending application cannot delete account
+DELETE http://localhost:8080/api/tenants/T002
+X-User-Id: T002
+
+### TEST: Delete tenant T011
+DELETE http://localhost:8080/api/tenants/T011
+X-User-Id: T011
+
+
+### =====================================================
+### TENANT PREFERENCE VALIDATION TESTS
+### =====================================================
+
+
+### 1. CREATE - Negative Minimum Budget
+### Expected: 400
+### Expected message:
+### Minimum budget must be greater than 0
+
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+X-User-Id: T010
+
+{
+  "preferenceId": "TEST-NEG-BUDGET",
+  "tenantId": "T010",
+  "preferredLocation": "Baner",
+  "minimumBudget": -15000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 800,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+
+### 2. UPDATE - Negative Minimum Area
+### Expected: 400
+### Expected message:
+### Minimum area must be greater than 0
+###
+### IMPORTANT:
+### Replace PREF_ID_HERE with the MongoDB _id
+### of an existing tenant preference.
+
+PUT http://localhost:8080/api/tenant-preferences/PREF_ID_HERE
+Content-Type: application/json
+X-User-Id: T010
+
+{
+  "preferenceId": "PREF_ID_SHOULD_BE_IGNORED",
+  "tenantId": "T010",
+  "preferredLocation": "Baner",
+  "minimumBudget": 20000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": -33,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+
+### 3. UPDATE - Negative Lease Duration
+### Expected: 400
+### Expected message:
+### Minimum lease duration must be at least 1 month
+
+PUT http://localhost:8080/api/tenant-preferences/PREF_ID_HERE
+Content-Type: application/json
+X-User-Id: T010
+
+{
+  "preferenceId": "PREF_ID_SHOULD_BE_IGNORED",
+  "tenantId": "T010",
+  "preferredLocation": "Baner",
+  "minimumBudget": 20000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 800,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": -13,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+
+### 4. CREATE - Negative Number of Occupants
+### Expected: 400
+### Expected message:
+### Number of occupants must be at least 1
+
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+X-User-Id: T010
+
+{
+  "preferenceId": "TEST-NEG-OCCUPANTS",
+  "tenantId": "T010",
+  "preferredLocation": "Baner",
+  "minimumBudget": 20000,
+  "maximumBudget": 30000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 800,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": -5,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+
+### 5. CREATE - Minimum Budget Greater Than Maximum Budget
+### Expected: 400
+### Expected message:
+### Minimum budget cannot be greater than maximum budget
+
+POST http://localhost:8080/api/tenant-preferences
+Content-Type: application/json
+X-User-Id: T010
+
+{
+  "preferenceId": "TEST-BUDGET-RANGE",
+  "tenantId": "T010",
+  "preferredLocation": "Baner",
+  "minimumBudget": 30000,
+  "maximumBudget": 20000,
+  "preferredPropertyType": "Apartment",
+  "preferredBhk": 2,
+  "minimumAreaSqft": 800,
+  "minimumBathrooms": 2,
+  "numberOfOccupants": 2,
+  "furnishingPreference": "Semi-Furnished",
+  "preferredFloor": "Any",
+  "minimumLeaseDuration": 12,
+  "preferredMoveInDate": "2026-10-15"
+}
+
+
+
+### =====================================================
+### PROPERTY VALIDATION TESTS
+### =====================================================
+
+
+### 6. CREATE PROPERTY - Negative BHK
+### Expected: 400
+### Expected message:
+### BHK must be at least 1
+
+POST http://localhost:8080/api/properties
+Content-Type: application/json
+X-User-Id: L001
+
+{
+  "propertyId": "TEST-PROP-BHK",
+  "landlordId": "L001",
+  "propertyType": "Apartment",
+  "location": "Baner",
+  "city": "Pune",
+  "pincode": "411045",
+  "bhk": -2,
+  "areaSqft": 1000,
+  "numberOfBathrooms": 2,
+  "monthlyRent": 25000,
+  "securityDeposit": 50000,
+  "floorNumber": 3,
+  "furnishingStatus": "Semi-Furnished",
+  "availableFrom": "2026-10-15",
+  "propertyStatus": "Available"
+}
+
+
+### 7. CREATE PROPERTY - Negative Area
+### Expected: 400
+### Expected message:
+### Area must be greater than 0
+
+POST http://localhost:8080/api/properties
+Content-Type: application/json
+X-User-Id: L001
+
+{
+  "propertyId": "TEST-PROP-AREA",
+  "landlordId": "L001",
+  "propertyType": "Apartment",
+  "location": "Baner",
+  "city": "Pune",
+  "pincode": "411045",
+  "bhk": 2,
+  "areaSqft": -500,
+  "numberOfBathrooms": 2,
+  "monthlyRent": 25000,
+  "securityDeposit": 50000,
+  "floorNumber": 3,
+  "furnishingStatus": "Semi-Furnished",
+  "availableFrom": "2026-10-15",
+  "propertyStatus": "Available"
+}
+
+
+### 8. CREATE PROPERTY - Negative Monthly Rent
+### Expected: 400
+### Expected message:
+### Monthly rent must be greater than 0
+
+POST http://localhost:8080/api/properties
+Content-Type: application/json
+X-User-Id: L001
+
+{
+  "propertyId": "TEST-PROP-RENT",
+  "landlordId": "L001",
+  "propertyType": "Apartment",
+  "location": "Baner",
+  "city": "Pune",
+  "pincode": "411045",
+  "bhk": 2,
+  "areaSqft": 1000,
+  "numberOfBathrooms": 2,
+  "monthlyRent": -20000,
+  "securityDeposit": 50000,
+  "floorNumber": 3,
+  "furnishingStatus": "Semi-Furnished",
+  "availableFrom": "2026-10-15",
+  "propertyStatus": "Available"
 }

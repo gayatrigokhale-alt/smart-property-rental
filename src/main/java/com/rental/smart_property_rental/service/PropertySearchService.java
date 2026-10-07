@@ -1,8 +1,14 @@
 package com.rental.smart_property_rental.service;
 
+import com.rental.smart_property_rental.dto.PropertyResponse;
+import com.rental.smart_property_rental.model.Amenity;
+import com.rental.smart_property_rental.model.Landlord;
 import com.rental.smart_property_rental.model.Property;
+import com.rental.smart_property_rental.model.PropertyAmenity;
 import com.rental.smart_property_rental.model.TenantAmenityPreference;
 import com.rental.smart_property_rental.model.TenantPreference;
+import com.rental.smart_property_rental.repository.AmenityRepository;
+import com.rental.smart_property_rental.repository.LandlordRepository;
 import com.rental.smart_property_rental.repository.PropertyAmenityRepository;
 import com.rental.smart_property_rental.repository.TenantAmenityPreferenceRepository;
 import com.rental.smart_property_rental.repository.TenantPreferenceRepository;
@@ -11,6 +17,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -23,12 +30,16 @@ public class PropertySearchService {
     private final TenantPreferenceRepository tenantPreferenceRepository;
     private final TenantAmenityPreferenceRepository tenantAmenityPreferenceRepository;
     private final PropertyAmenityRepository propertyAmenityRepository;
+    private final AmenityRepository amenityRepository;
+    private final LandlordRepository landlordRepository;
 
     public PropertySearchService(
             MongoTemplate mongoTemplate,
             TenantPreferenceRepository tenantPreferenceRepository,
             TenantAmenityPreferenceRepository tenantAmenityPreferenceRepository,
-            PropertyAmenityRepository propertyAmenityRepository) {
+            PropertyAmenityRepository propertyAmenityRepository,
+            AmenityRepository amenityRepository,
+            LandlordRepository landlordRepository) {
 
         this.mongoTemplate = mongoTemplate;
         this.tenantPreferenceRepository = tenantPreferenceRepository;
@@ -36,9 +47,13 @@ public class PropertySearchService {
                 tenantAmenityPreferenceRepository;
         this.propertyAmenityRepository =
                 propertyAmenityRepository;
+        this.amenityRepository =
+                amenityRepository;
+        this.landlordRepository =
+                landlordRepository;
     }
 
-    public List<Property> searchProperties(String tenantId) {
+    public List<PropertyResponse> searchProperties(String tenantId) {
 
         TenantPreference preference =
                 tenantPreferenceRepository.findByTenantId(tenantId)
@@ -160,22 +175,48 @@ public class PropertySearchService {
         List<Property> properties =
                 mongoTemplate.find(query, Property.class);
 
-        // If tenant has no amenity preferences,
-        // return the properties directly.
-        if (requiredAmenityIds == null ||
-                requiredAmenityIds.isEmpty()) {
+        /*
+         * Only show properties belonging to VERIFIED landlords.
+         */
+        properties = properties.stream()
+                .filter(this::isPropertyLandlordVerified)
+                .toList();
 
-            return properties;
+        // Filter properties according to required amenities
+        if (requiredAmenityIds != null &&
+                !requiredAmenityIds.isEmpty()) {
+
+            properties = properties.stream()
+                    .filter(property ->
+                            hasAllRequiredAmenities(
+                                    property.getPropertyId(),
+                                    requiredAmenityIds
+                            ))
+                    .toList();
         }
 
-        // Filter properties according to required amenities.
+        // Convert matching properties to PropertyResponse
         return properties.stream()
-                .filter(property ->
-                        hasAllRequiredAmenities(
-                                property.getPropertyId(),
-                                requiredAmenityIds
-                        ))
+                .map(this::createPropertyResponse)
                 .toList();
+    }
+
+    private boolean isPropertyLandlordVerified(
+            Property property) {
+
+        if (property.getLandlordId() == null ||
+                property.getLandlordId().isBlank()) {
+
+            return false;
+        }
+
+        return landlordRepository
+                .findByLandlordId(property.getLandlordId())
+                .map(landlord ->
+                        "Verified".equalsIgnoreCase(
+                                landlord.getVerificationStatus()
+                        ))
+                .orElse(false);
     }
 
     private boolean hasAllRequiredAmenities(
@@ -195,6 +236,108 @@ public class PropertySearchService {
                             .containsAll(requiredAmenityIds);
                 })
                 .orElse(false);
+    }
+
+    // =====================================================
+    // CREATE PROPERTY RESPONSE WITH AMENITY NAMES
+    // =====================================================
+
+    private PropertyResponse createPropertyResponse(
+            Property property) {
+
+        PropertyResponse response =
+                new PropertyResponse();
+
+        response.setPropertyId(
+                property.getPropertyId()
+        );
+
+        response.setLandlordId(
+                property.getLandlordId()
+        );
+
+        response.setPropertyType(
+                property.getPropertyType()
+        );
+
+        response.setLocation(
+                property.getLocation()
+        );
+
+        response.setCity(
+                property.getCity()
+        );
+
+        response.setPincode(
+                property.getPincode()
+        );
+
+        response.setBhk(
+                property.getBhk()
+        );
+
+        response.setAreaSqft(
+                property.getAreaSqft()
+        );
+
+        response.setNumberOfBathrooms(
+                property.getNumberOfBathrooms()
+        );
+
+        response.setMonthlyRent(
+                property.getMonthlyRent()
+        );
+
+        response.setSecurityDeposit(
+                property.getSecurityDeposit()
+        );
+
+        response.setFloorNumber(
+                property.getFloorNumber()
+        );
+
+        response.setFurnishingStatus(
+                property.getFurnishingStatus()
+        );
+
+        response.setAvailableFrom(
+                property.getAvailableFrom()
+        );
+
+        response.setPropertyStatus(
+                property.getPropertyStatus()
+        );
+
+        // Find amenities for this property
+        List<String> amenityNames =
+                new ArrayList<>();
+
+        propertyAmenityRepository
+                .findByPropertyId(property.getPropertyId())
+                .ifPresent(propertyAmenity -> {
+
+                    List<String> amenityIds =
+                            propertyAmenity.getAmenityIds();
+
+                    if (amenityIds != null &&
+                            !amenityIds.isEmpty()) {
+
+                        List<Amenity> amenities =
+                                amenityRepository
+                                        .findByAmenityIdIn(amenityIds);
+
+                        for (Amenity amenity : amenities) {
+
+                            amenityNames.add(
+                                    amenity.getAmenityName()
+                            );
+                        }
+                    }
+                });
+
+        response.setAmenities(amenityNames);
+
+        return response;
     }
 
     private void addFloorCriteria(

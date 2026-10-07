@@ -209,7 +209,20 @@ button {
 .small-btn {
     padding: 9px 15px;
 }
+.danger-btn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
 
+.danger-btn:hover {
+    background: #b91c1c;
+}
 
 /* =========================
    DASHBOARD
@@ -294,7 +307,57 @@ button {
 .profile-value {
     font-weight: 600;
 }
+/* =========================
+   PROFILE EDIT FORM
+========================= */
 
+.profile-edit-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-top: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 7px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #2563eb;
+}
+
+.form-group input:disabled {
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.profile-form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
 
 /* =========================
    PROPERTY CARDS
@@ -360,7 +423,100 @@ button {
     width: 100%;
 }
 
+/* =====================================================
+   PROPERTY EDIT FORM
+   ===================================================== */
 
+.property-edit-form {
+    width: 100%;
+}
+
+.property-edit-form h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.property-edit-form .form-group {
+    margin-bottom: 16px;
+}
+
+.property-edit-form .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.property-edit-form input,
+.property-edit-form select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.property-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.property-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.property-edit-form .detail {
+    margin-top: 15px;
+}
+
+.property-edit-form .detail small {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-weight: normal;
+}
+
+/* =====================================================
+   PROPERTY AMENITY EDIT
+===================================================== */
+
+.amenity-edit-description {
+    color: #64748b;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.amenity-edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.amenity-edit-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.amenity-edit-option:hover {
+    background: #f1f5f9;
+}
+
+.amenity-edit-option input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.amenity-edit-option span {
+    font-size: 14px;
+    color: #334155;
+}
 /* =========================
    TABLE
 ========================= */
@@ -593,5 +749,217 @@ button {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+    }
+    .verification-message {
+        grid-column: 1 / -1;
+        margin-top: 5px;
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .verification-message.verified {
+        background: #e8f7ee;
+    }
+
+    .verification-message.pending {
+        background: #fff7df;
+    }
+
+    .verification-message.rejected {
+        background: #fdeaea;
+    }
+    /* =========================
+   PROPERTY AMENITIES
+========================= */
+
+    .property-amenities {
+        margin-top: 18px;
+    }
+
+    .property-amenities strong {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .amenity-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .amenity-tag {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .property-amenities,
+    #tenantAmenityPreferences {
+        margin-top: 18px;
+    }
+
+    #tenantAmenityPreferences .amenity-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    #tenantAmenityPreferences .amenity-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 14px;
+        border-radius: 20px;
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid #e2e8f0;
+    }
+    .profile-edit-form {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-form-actions {
+        flex-direction: column;
+    }
+
+    .profile-form-actions button {
+        width: 100%;
+    }
+    /* =========================
+   PROFILE ACTIONS
+========================= */
+
+    .profile-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .danger-btn {
+        padding: 9px 14px;
+        border: 1px solid #dc2626;
+        border-radius: 8px;
+        background: #dc2626;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .danger-btn:hover {
+        background: #b91c1c;
+    }
+
+
+    /* =========================
+       AUTH / REGISTRATION
+    ========================= */
+
+    .auth-subtitle {
+        margin-top: -8px;
+        margin-bottom: 20px;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .auth-card .form-group {
+        margin-bottom: 15px;
+    }
+
+    .auth-card .profile-form-actions {
+        margin-top: 15px;
+    }
+
+
+    /* =========================
+       HIDDEN
+    ========================= */
+
+    .hidden {
+        display: none !important;
+    }
+
+    /* =====================================================
+   TENANT AMENITY PREFERENCES
+===================================================== */
+
+    .amenity-selection {
+        margin-top: 15px;
+    }
+
+    .amenity-selection > p {
+        color: #64748b;
+        margin-bottom: 18px;
+    }
+
+    .amenity-checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .amenity-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+        cursor: pointer;
+    }
+
+    .amenity-checkbox:hover {
+        background: #f1f5f9;
+    }
+
+    .amenity-checkbox input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .amenity-checkbox span {
+        font-size: 14px;
+        color: #334155;
+    }
+
+
+    /* =====================================================
+       DANGER BUTTON
+    ===================================================== */
+
+    .danger-btn {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .danger-btn:hover {
+        background: #b91c1c;
+    }
+
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
+    @media (max-width: 650px) {
+
+        .amenity-checkbox-grid {
+            grid-template-columns: 1fr;
+        }
+
     }
 }

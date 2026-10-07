@@ -1,9 +1,17 @@
 package com.rental.smart_property_rental.service;
 
+import com.rental.smart_property_rental.dto.PropertyResponse;
+import com.rental.smart_property_rental.model.Amenity;
 import com.rental.smart_property_rental.model.Property;
+import com.rental.smart_property_rental.model.PropertyAmenity;
+import com.rental.smart_property_rental.repository.AmenityRepository;
+import com.rental.smart_property_rental.repository.LeaseRepository;
+import com.rental.smart_property_rental.repository.PropertyAmenityRepository;
 import com.rental.smart_property_rental.repository.PropertyRepository;
+
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,36 +19,82 @@ import java.util.Optional;
 public class PropertyService {
 
     private final PropertyRepository propertyRepository;
+    private final PropertyAmenityRepository propertyAmenityRepository;
+    private final AmenityRepository amenityRepository;
+    private final LeaseRepository leaseRepository;
 
-    public PropertyService(PropertyRepository propertyRepository) {
+    public PropertyService(
+            PropertyRepository propertyRepository,
+            PropertyAmenityRepository propertyAmenityRepository,
+            AmenityRepository amenityRepository,
+            LeaseRepository leaseRepository) {
+
         this.propertyRepository = propertyRepository;
+        this.propertyAmenityRepository = propertyAmenityRepository;
+        this.amenityRepository = amenityRepository;
+        this.leaseRepository = leaseRepository;
     }
 
-    // Get all properties
+    // =====================================================
+    // GET ALL PROPERTIES
+    // =====================================================
+
     public List<Property> getAllProperties() {
+
         return propertyRepository.findAll();
     }
 
-    // Get property by Property_ID
-    public Optional<Property> getPropertyByPropertyId(String propertyId) {
+    // =====================================================
+    // GET ONLY AVAILABLE PROPERTIES WITH AMENITIES
+    // =====================================================
+
+    public List<PropertyResponse> getAvailableProperties() {
+
+        List<Property> properties =
+                propertyRepository.findByPropertyStatus("Available");
+
+        return properties.stream()
+                .map(this::createPropertyResponse)
+                .toList();
+    }
+
+    // =====================================================
+    // GET PROPERTY BY PROPERTY_ID
+    // =====================================================
+
+    public Optional<Property> getPropertyByPropertyId(
+            String propertyId) {
+
         return propertyRepository.findByPropertyId(propertyId);
     }
 
-    // Get properties belonging to a landlord
-    public List<Property> getPropertiesByLandlord(String landlordId) {
+    // =====================================================
+    // GET PROPERTIES BELONGING TO A LANDLORD
+    // =====================================================
+
+    public List<Property> getPropertiesByLandlord(
+            String landlordId) {
+
         return propertyRepository.findByLandlordId(landlordId);
     }
 
-    // Create property
+    // =====================================================
+    // CREATE PROPERTY
+    // =====================================================
+
     public Property createProperty(
             Property property,
             String userId) {
 
         if (userId == null || userId.isBlank()) {
-            throw new RuntimeException("X-User-Id header is required");
+
+            throw new RuntimeException(
+                    "X-User-Id header is required"
+            );
         }
 
         if (!userId.equals(property.getLandlordId())) {
+
             throw new RuntimeException(
                     "You can only create a property for your own landlord account"
             );
@@ -48,18 +102,27 @@ public class PropertyService {
 
         if (property.getPropertyId() == null ||
                 property.getPropertyId().isBlank()) {
-            throw new RuntimeException("Property_ID is required");
+
+            throw new RuntimeException(
+                    "Property_ID is required"
+            );
         }
 
         if (propertyRepository
                 .existsByPropertyId(property.getPropertyId())) {
-            throw new RuntimeException("Property_ID already exists");
+
+            throw new RuntimeException(
+                    "Property_ID already exists"
+            );
         }
 
         return propertyRepository.save(property);
     }
 
-    // Update property
+    // =====================================================
+    // UPDATE PROPERTY
+    // =====================================================
+
     public Property updateProperty(
             String propertyId,
             Property updatedProperty,
@@ -69,10 +132,12 @@ public class PropertyService {
                 propertyRepository.findByPropertyId(propertyId)
                         .orElseThrow(() ->
                                 new RuntimeException(
-                                        "Property not found"));
+                                        "Property not found"
+                                ));
 
         // Ownership check
         if (!userId.equals(existingProperty.getLandlordId())) {
+
             throw new RuntimeException(
                     "You are not authorized to modify this property"
             );
@@ -143,7 +208,10 @@ public class PropertyService {
         return propertyRepository.save(existingProperty);
     }
 
-    // Delete property
+    // =====================================================
+    // DELETE PROPERTY
+    // =====================================================
+
     public void deleteProperty(
             String propertyId,
             String userId) {
@@ -152,15 +220,146 @@ public class PropertyService {
                 propertyRepository.findByPropertyId(propertyId)
                         .orElseThrow(() ->
                                 new RuntimeException(
-                                        "Property not found"));
+                                        "Property not found"
+                                ));
 
         // Ownership check
         if (!userId.equals(existingProperty.getLandlordId())) {
+
             throw new RuntimeException(
                     "You are not authorized to delete this property"
             );
         }
 
+        // Check whether the property has an active lease
+        boolean hasActiveLease =
+                leaseRepository.findByPropertyId(propertyId)
+                        .stream()
+                        .anyMatch(lease ->
+                                "Active".equalsIgnoreCase(
+                                        lease.getLeaseStatus()
+                                )
+                        );
+
+        if (hasActiveLease) {
+
+            throw new RuntimeException(
+                    "Property cannot be deleted while it has an active lease"
+            );
+        }
+
+        // Delete property amenities first
+        propertyAmenityRepository
+                .findByPropertyId(propertyId)
+                .ifPresent(propertyAmenity ->
+                        propertyAmenityRepository.delete(propertyAmenity)
+                );
+
+        // Delete property
         propertyRepository.delete(existingProperty);
+    }
+
+    // =====================================================
+    // CREATE PROPERTY RESPONSE WITH AMENITY NAMES
+    // =====================================================
+
+    private PropertyResponse createPropertyResponse(
+            Property property) {
+
+        PropertyResponse response =
+                new PropertyResponse();
+
+        response.setPropertyId(
+                property.getPropertyId()
+        );
+
+        response.setLandlordId(
+                property.getLandlordId()
+        );
+
+        response.setPropertyType(
+                property.getPropertyType()
+        );
+
+        response.setLocation(
+                property.getLocation()
+        );
+
+        response.setCity(
+                property.getCity()
+        );
+
+        response.setPincode(
+                property.getPincode()
+        );
+
+        response.setBhk(
+                property.getBhk()
+        );
+
+        response.setAreaSqft(
+                property.getAreaSqft()
+        );
+
+        response.setNumberOfBathrooms(
+                property.getNumberOfBathrooms()
+        );
+
+        response.setMonthlyRent(
+                property.getMonthlyRent()
+        );
+
+        response.setSecurityDeposit(
+                property.getSecurityDeposit()
+        );
+
+        response.setFloorNumber(
+                property.getFloorNumber()
+        );
+
+        response.setFurnishingStatus(
+                property.getFurnishingStatus()
+        );
+
+        response.setAvailableFrom(
+                property.getAvailableFrom()
+        );
+
+        response.setPropertyStatus(
+                property.getPropertyStatus()
+        );
+
+        // Find amenities for this property
+        Optional<PropertyAmenity> propertyAmenity =
+                propertyAmenityRepository
+                        .findByPropertyId(property.getPropertyId());
+
+        List<String> amenityNames =
+                new ArrayList<>();
+
+        if (propertyAmenity.isPresent()) {
+
+            List<String> amenityIds =
+                    propertyAmenity.get().getAmenityIds();
+
+            if (amenityIds != null &&
+                    !amenityIds.isEmpty()) {
+
+                List<Amenity> amenities =
+                        amenityRepository
+                                .findByAmenityIdIn(amenityIds);
+
+                for (Amenity amenity : amenities) {
+
+                    amenityNames.add(
+                            amenity.getAmenityName()
+                    );
+                }
+            }
+        }
+
+        response.setAmenities(amenityNames);
+
+        return response;
     }
 }

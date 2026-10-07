@@ -1,7 +1,7 @@
 package com.rental.smart_property_rental.controller;
 
 import jakarta.validation.Valid;
-
+import com.rental.smart_property_rental.dto.RegisterRequest;
 import com.rental.smart_property_rental.dto.LoginRequest;
 import com.rental.smart_property_rental.dto.TenantLoginResponse;
 import com.rental.smart_property_rental.dto.UpdateTenantRequest;
@@ -125,52 +125,102 @@ public class TenantController {
     }
 
     // =========================================================
-    // CREATE TENANT
-    // =========================================================
+// CREATE TENANT ACCOUNT
+// =========================================================
 
     @PostMapping
-    public Tenant createTenant(
-            @RequestBody Tenant tenant) {
+    public ResponseEntity<?> createTenant(
+            @Valid @RequestBody RegisterRequest request) {
 
-        return tenantService.saveTenant(tenant);
+        try {
+
+            Tenant tenant =
+                    tenantService.registerTenant(request);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(tenant);
+
+        } catch (RuntimeException e) {
+
+            if ("Email already registered".equals(e.getMessage())) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
     }
 
-    // =========================================================
-    // UPDATE TENANT BY ID
-    // =========================================================
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Tenant> updateTenant(
-            @PathVariable String id,
-            @RequestBody Tenant tenant) {
-
-        return tenantService.getTenantById(id)
-                .map(existingTenant -> {
-
-                    tenant.setId(id);
-
-                    return ResponseEntity.ok(
-                            tenantService.saveTenant(tenant)
-                    );
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
 
     // =========================================================
     // DELETE TENANT
     // =========================================================
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTenant(
-            @PathVariable String id) {
+    // DELETE TENANT ACCOUNT
+    // =========================================================
+// DELETE TENANT ACCOUNT
+// =========================================================
 
-        if (tenantService.getTenantById(id).isPresent()) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTenant(
+            @PathVariable String id,
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
+
+        // =========================================================
+        // CHECK LOGIN HEADER
+        // =========================================================
+
+        if (userId == null || userId.isBlank()) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("{\"error\":\"User ID is required\"}");
+        }
+
+        // =========================================================
+        // TENANT CAN DELETE ONLY THEIR OWN ACCOUNT
+        // =========================================================
+
+        if (!id.equals(userId)) {
+
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("{\"error\":\"You can only delete your own account\"}");
+        }
+
+        // =========================================================
+        // DELETE ACCOUNT
+        // =========================================================
+
+        try {
+
+            if (tenantService.getTenantById(id).isEmpty()) {
+
+                return ResponseEntity
+                        .notFound()
+                        .build();
+            }
 
             tenantService.deleteTenant(id);
 
-            return ResponseEntity.noContent().build();
-        }
+            return ResponseEntity
+                    .noContent()
+                    .build();
 
-        return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\":\"" + e.getMessage() + "\"}");
+        }
     }
 }

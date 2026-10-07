@@ -17,4 +17,5 @@ public interface LeaseRepository extends MongoRepository<Lease, String> {
     List<Lease> findByTenantId(String tenantId);
 
     List<Lease> findByPropertyId(String propertyId);
+
 }

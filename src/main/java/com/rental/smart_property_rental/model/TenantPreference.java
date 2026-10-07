@@ -1,5 +1,9 @@
 package com.rental.smart_property_rental.model;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -11,46 +15,68 @@ public class TenantPreference {
     private String id;
 
     @Field("Preference_ID")
+    @NotBlank(message = "Preference_ID is required")
     private String preferenceId;
 
     @Field("Tenant_ID")
+    @NotBlank(message = "Tenant_ID is required")
     private String tenantId;
 
     @Field("Preferred_Location")
+    @NotBlank(message = "Preferred location is required")
     private String preferredLocation;
 
     @Field("Minimum_Budget")
+    @NotNull(message = "Minimum budget is required")
+    @Min(value = 1, message = "Minimum budget must be greater than 0")
     private Integer minimumBudget;
 
     @Field("Maximum_Budget")
+    @NotNull(message = "Maximum budget is required")
+    @Min(value = 1, message = "Maximum budget must be greater than 0")
     private Integer maximumBudget;
 
     @Field("Preferred_Property_Type")
+    @NotBlank(message = "Preferred property type is required")
     private String preferredPropertyType;
 
     @Field("Preferred_BHK")
+    @NotNull(message = "Preferred BHK is required")
+    @Min(value = 1, message = "Preferred BHK must be at least 1")
     private Integer preferredBhk;
 
     @Field("Minimum_Area_sqft")
+    @NotNull(message = "Minimum area is required")
+    @Min(value = 1, message = "Minimum area must be greater than 0")
     private Integer minimumAreaSqft;
 
     @Field("Minimum_Bathrooms")
+    @NotNull(message = "Minimum bathrooms is required")
+    @Min(value = 1, message = "Minimum bathrooms must be at least 1")
     private Integer minimumBathrooms;
 
     @Field("Number_of_Occupants")
+    @NotNull(message = "Number of occupants is required")
+    @Min(value = 1, message = "Number of occupants must be at least 1")
     private Integer numberOfOccupants;
 
     @Field("Furnishing_Preference")
+    @NotBlank(message = "Furnishing preference is required")
     private String furnishingPreference;
 
     @Field("Preferred_Floor")
+    @NotBlank(message = "Preferred floor is required")
     private String preferredFloor;
 
     @Field("Minimum_Lease_Duration")
+    @NotNull(message = "Minimum lease duration is required")
+    @Min(value = 1, message = "Minimum lease duration must be at least 1 month")
     private Integer minimumLeaseDuration;
 
     @Field("Preferred_Move_In_Date")
+    @NotBlank(message = "Preferred move-in date is required")
     private String preferredMoveInDate;
+
 
     // Getters and Setters
 

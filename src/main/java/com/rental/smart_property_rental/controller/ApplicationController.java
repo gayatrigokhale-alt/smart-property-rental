@@ -88,6 +88,7 @@ public class ApplicationController {
         }
 
         try {
+
             List<Application> applications =
                     applicationService.getApplicationsByProperty(
                             propertyId,
@@ -98,14 +99,23 @@ public class ApplicationController {
 
         } catch (RuntimeException e) {
 
-            if (e.getMessage().contains("not authorized")) {
+            if (e.getMessage().contains("not authorized")
+                    || e.getMessage().contains("not verified")) {
+
                 return ResponseEntity
                         .status(HttpStatus.FORBIDDEN)
                         .body(e.getMessage());
             }
 
+            if (e.getMessage().contains("not found")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(e.getMessage());
+            }
+
             return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
+                    .status(HttpStatus.BAD_REQUEST)
                     .body(e.getMessage());
         }
     }

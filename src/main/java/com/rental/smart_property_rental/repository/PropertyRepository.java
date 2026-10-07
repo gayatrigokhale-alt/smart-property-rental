@@ -1,4 +1,5 @@
-package com.rental.smart_property_rental.repository;
+
+        package com.rental.smart_property_rental.repository;
 
 import com.rental.smart_property_rental.model.Property;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -14,4 +15,9 @@ public interface PropertyRepository
     boolean existsByPropertyId(String propertyId);
 
     List<Property> findByLandlordId(String landlordId);
+
+    // Get only properties whose status is Available
+    List<Property> findByPropertyStatus(String propertyStatus);
 }
+
+

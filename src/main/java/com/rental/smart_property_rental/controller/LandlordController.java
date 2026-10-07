@@ -1,6 +1,8 @@
 
         package com.rental.smart_property_rental.controller;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import com.rental.smart_property_rental.dto.LandlordUpdateRequest;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -133,30 +135,108 @@ public class LandlordController {
     //Landlord profile update
 
 // Landlord profile update
-    @PutMapping("/{landlordId}")
-    public ResponseEntity<?> updateLandlord(
+// Landlord profile update
+@PutMapping("/{landlordId}")
+public ResponseEntity<?> updateLandlord(
+        @PathVariable String landlordId,
+        @RequestHeader(
+                value = "X-User-Id",
+                required = false
+        ) String userId,
+        @Valid @RequestBody LandlordUpdateRequest request) {
+
+    if (userId == null || userId.isBlank()) {
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body("X-User-Id header is required");
+    }
+
+    try {
+
+        Landlord landlord =
+                landlordService.updateLandlord(
+                        landlordId,
+                        userId,
+                        request
+                );
+
+        return ResponseEntity.ok(landlord);
+
+    } catch (RuntimeException e) {
+
+        if (e.getMessage().contains("not authorized")) {
+
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(e.getMessage());
+        }
+
+        if (e.getMessage().equals("Email already registered")) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+
+        if (e.getMessage().equals("Landlord not found")) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage());
+    }
+}
+
+    // Delete landlord account
+    @DeleteMapping("/{landlordId}")
+    public ResponseEntity<?> deleteLandlord(
             @PathVariable String landlordId,
-            @Valid @RequestBody LandlordUpdateRequest request) {
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
+
+        if (userId == null || userId.isBlank()) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("X-User-Id header is required");
+        }
 
         try {
 
-            Landlord landlord =
-                    landlordService.updateLandlord(
-                            landlordId,
-                            request
-                    );
+            landlordService.deleteLandlord(
+                    landlordId,
+                    userId
+            );
 
-            return ResponseEntity.ok(landlord);
+            return ResponseEntity
+                    .noContent()
+                    .build();
 
         } catch (RuntimeException e) {
 
-            if (e.getMessage().equals("Email already registered")) {
+            if (e.getMessage().contains("not authorized")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            }
+
+            if (e.getMessage().contains("active lease")) {
+
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
                         .body(e.getMessage());
             }
 
             if (e.getMessage().equals("Landlord not found")) {
+
                 return ResponseEntity
                         .status(HttpStatus.NOT_FOUND)
                         .body(e.getMessage());
@@ -167,8 +247,6 @@ public class LandlordController {
                     .body(e.getMessage());
         }
     }
-
-
 
 }
 

@@ -1,4 +1,5 @@
-package com.rental.smart_property_rental.controller;
+
+        package com.rental.smart_property_rental.controller;
 
 import com.rental.smart_property_rental.model.Lease;
 import com.rental.smart_property_rental.service.LeaseService;
@@ -21,7 +22,10 @@ public class LeaseController {
     // GET ALL LEASES
     @GetMapping
     public ResponseEntity<List<Lease>> getAllLeases() {
-        return ResponseEntity.ok(leaseService.getAllLeases());
+
+        return ResponseEntity.ok(
+                leaseService.getAllLeases()
+        );
     }
 
     // GET LEASE BY ID
@@ -30,11 +34,15 @@ public class LeaseController {
             @PathVariable String leaseId) {
 
         try {
+
             return ResponseEntity.ok(
                     leaseService.getLeaseById(leaseId)
             );
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
         }
     }
@@ -44,45 +52,69 @@ public class LeaseController {
     public ResponseEntity<?> getLeasesByTenant(
             @PathVariable String tenantId) {
 
-        return ResponseEntity.ok(
-                leaseService.getLeasesByTenant(tenantId)
-        );
+        try {
+
+            return ResponseEntity.ok(
+                    leaseService.getLeasesByTenant(tenantId)
+            );
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
     }
 
     // GET LEASES BY PROPERTY
+    //
+    // Only the landlord who owns the property can view
+    // leases for that property.
+    //
+    // The landlord must also be verified.
     @GetMapping("/property/{propertyId}")
     public ResponseEntity<?> getLeasesByProperty(
-            @PathVariable String propertyId) {
-
-        return ResponseEntity.ok(
-                leaseService.getLeasesByProperty(propertyId)
-        );
-    }
-
-    // CREATE LEASE
-    @PostMapping
-    public ResponseEntity<?> createLease(
-            @RequestHeader(value = "X-User-Id", required = false)
-            String userId,
-            @RequestBody Lease lease) {
+            @PathVariable String propertyId,
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
 
         if (userId == null || userId.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body("X-User-Id header is required");
         }
 
         try {
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(leaseService.createLease(lease, userId));
+
+            return ResponseEntity.ok(
+                    leaseService.getLeasesByProperty(
+                            propertyId,
+                            userId
+                    )
+            );
 
         } catch (RuntimeException e) {
 
-            if (e.getMessage().contains("not authorized")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            if (e.getMessage().contains("not authorized")
+                    || e.getMessage().contains("not verified")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
                         .body(e.getMessage());
             }
 
-            return ResponseEntity.badRequest()
+            if (e.getMessage().contains("not found")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .badRequest()
                     .body(e.getMessage());
         }
     }
@@ -91,16 +123,23 @@ public class LeaseController {
     @PutMapping("/{leaseId}")
     public ResponseEntity<?> updateLease(
             @PathVariable String leaseId,
-            @RequestHeader(value = "X-User-Id", required = false)
-            String userId,
+
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId,
+
             @RequestBody Lease lease) {
 
         if (userId == null || userId.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body("X-User-Id header is required");
         }
 
         try {
+
             return ResponseEntity.ok(
                     leaseService.updateLease(
                             leaseId,
@@ -111,17 +150,23 @@ public class LeaseController {
 
         } catch (RuntimeException e) {
 
-            if (e.getMessage().contains("not authorized")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            if (e.getMessage().contains("not authorized")
+                    || e.getMessage().contains("not verified")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
                         .body(e.getMessage());
             }
 
             if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
                         .body(e.getMessage());
             }
 
-            return ResponseEntity.badRequest()
+            return ResponseEntity
+                    .badRequest()
                     .body(e.getMessage());
         }
     }
@@ -130,15 +175,21 @@ public class LeaseController {
     @PutMapping("/{leaseId}/terminate")
     public ResponseEntity<?> terminateLease(
             @PathVariable String leaseId,
-            @RequestHeader(value = "X-User-Id", required = false)
-            String userId) {
+
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
 
         if (userId == null || userId.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body("X-User-Id header is required");
         }
 
         try {
+
             return ResponseEntity.ok(
                     leaseService.terminateLease(
                             leaseId,
@@ -148,17 +199,23 @@ public class LeaseController {
 
         } catch (RuntimeException e) {
 
-            if (e.getMessage().contains("not authorized")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            if (e.getMessage().contains("not authorized")
+                    || e.getMessage().contains("not verified")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
                         .body(e.getMessage());
             }
 
             if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
                         .body(e.getMessage());
             }
 
-            return ResponseEntity.badRequest()
+            return ResponseEntity
+                    .badRequest()
                     .body(e.getMessage());
         }
     }
@@ -167,15 +224,21 @@ public class LeaseController {
     @PutMapping("/{leaseId}/complete")
     public ResponseEntity<?> completeLease(
             @PathVariable String leaseId,
-            @RequestHeader(value = "X-User-Id", required = false)
-            String userId) {
+
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
 
         if (userId == null || userId.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body("X-User-Id header is required");
         }
 
         try {
+
             return ResponseEntity.ok(
                     leaseService.completeLease(
                             leaseId,
@@ -185,18 +248,25 @@ public class LeaseController {
 
         } catch (RuntimeException e) {
 
-            if (e.getMessage().contains("not authorized")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            if (e.getMessage().contains("not authorized")
+                    || e.getMessage().contains("not verified")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
                         .body(e.getMessage());
             }
 
             if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
                         .body(e.getMessage());
             }
 
-            return ResponseEntity.badRequest()
+            return ResponseEntity
+                    .badRequest()
                     .body(e.getMessage());
         }
     }
 }
+

@@ -18,4 +18,8 @@ public interface ApplicationRepository
     List<Application> findByPropertyId(String propertyId);
 
     boolean existsByTenantIdAndPropertyId(String tenantId, String propertyId);
+    boolean existsByTenantIdAndApplicationStatus(
+            String tenantId,
+            String applicationStatus
+    );
 }

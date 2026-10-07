@@ -1,5 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,8 +13,11 @@
 
 <div id="app">
 
-    <!-- LOGIN PAGE -->
+    <!-- =====================================================
+         LOGIN PAGE
+         ===================================================== -->
     <section id="loginPage" class="page">
+
         <div class="login-container">
 
             <div class="login-brand">
@@ -21,10 +26,15 @@
             </div>
 
             <div class="login-card">
+
                 <h2>Login</h2>
-                <p class="subtitle">Access your rental dashboard</p>
+
+                <p class="subtitle">
+                    Access your rental dashboard
+                </p>
 
                 <label for="role">Login As</label>
+
                 <select id="role">
                     <option value="tenant">Tenant</option>
                     <option value="landlord">Landlord</option>
@@ -32,6 +42,7 @@
                 </select>
 
                 <label for="loginEmail">Email</label>
+
                 <input
                         type="email"
                         id="loginEmail"
@@ -39,87 +50,624 @@
                 >
 
                 <label for="loginPassword">Password</label>
+
                 <input
                         type="password"
                         id="loginPassword"
                         placeholder="Enter your password"
                 >
 
-                <button onclick="login()" class="primary-btn">
+                <button
+                        type="button"
+                        onclick="login()"
+                        class="primary-btn">
                     Login
                 </button>
 
+                <button
+                        type="button"
+                        class="secondary-btn"
+                        onclick="showTenantRegistration()">
+                    Create New Tenant Account
+                </button>
+
+                <button
+                        type="button"
+                        class="secondary-btn"
+                        onclick="showLandlordRegistration()">
+                    Create New Landlord Account
+                </button>
                 <p id="loginMessage" class="message"></p>
+
             </div>
 
         </div>
+
     </section>
 
 
-    <!-- MAIN APPLICATION -->
+    <!-- =====================================================
+         TENANT REGISTRATION PAGE
+         ===================================================== -->
+    <section id="tenantRegistrationPage" class="page hidden">
+
+        <div class="registration-card">
+
+            <h2>Create Tenant Account</h2>
+
+            <p class="subtitle">
+                Create your account to find and rent properties.
+            </p>
+
+            <div class="registration-form">
+
+                <div class="form-group">
+
+                    <label for="registerFirstName">
+                        First Name
+                    </label>
+
+                    <input
+                            type="text"
+                            id="registerFirstName"
+                            placeholder="Enter first name"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerLastName">
+                        Last Name
+                    </label>
+
+                    <input
+                            type="text"
+                            id="registerLastName"
+                            placeholder="Enter last name"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerEmail">
+                        Email
+                    </label>
+
+                    <input
+                            type="email"
+                            id="registerEmail"
+                            placeholder="Enter email"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerPhone">
+                        Phone
+                    </label>
+
+                    <input
+                            type="tel"
+                            id="registerPhone"
+                            placeholder="Enter phone number"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerGender">
+                        Gender
+                    </label>
+
+                    <select id="registerGender">
+
+                        <option value="">
+                            Select Gender
+                        </option>
+
+                        <option value="Male">
+                            Male
+                        </option>
+
+                        <option value="Female">
+                            Female
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerOccupation">
+                        Occupation
+                    </label>
+
+                    <input
+                            type="text"
+                            id="registerOccupation"
+                            placeholder="Enter occupation"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerAge">
+                        Age
+                    </label>
+
+                    <input
+                            type="number"
+                            id="registerAge"
+                            min="18"
+                            max="100"
+                            placeholder="Enter age"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerTenantType">
+                        Tenant Type
+                    </label>
+
+                    <select id="registerTenantType">
+
+                        <option value="">
+                            Select Tenant Type
+                        </option>
+
+                        <option value="Student">
+                            Student
+                        </option>
+
+                        <option value="Working Professional">
+                            Working Professional
+                        </option>
+
+                        <option value="Family">
+                            Family
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerHasPets">
+                        Do you have pets?
+                    </label>
+
+                    <select id="registerHasPets">
+
+                        <option value="">
+                            Select
+                        </option>
+
+                        <option value="true">
+                            Yes
+                        </option>
+
+                        <option value="false">
+                            No
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerPassword">
+                        Password
+                    </label>
+
+                    <input
+                            type="password"
+                            id="registerPassword"
+                            placeholder="Enter password"
+                    >
+
+                </div>
+
+
+                <div class="registration-actions">
+
+                    <button
+                            type="button"
+                            class="primary-btn"
+                            onclick="registerTenant()">
+                        Create Account
+                    </button>
+
+                    <button
+                            type="button"
+                            class="secondary-btn"
+                            onclick="showLogin()">
+                        Back to Login
+                    </button>
+
+                </div>
+
+
+                <p id="registrationMessage" class="message"></p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================================
+     LANDLORD REGISTRATION PAGE
+     ===================================================== -->
+
+    <section id="landlordRegistrationPage" class="page hidden">
+
+        <div class="registration-card">
+
+            <h2>Create Landlord Account</h2>
+
+            <p class="subtitle">
+                Create your account and list your rental property.
+            </p>
+
+            <div class="registration-form">
+
+                <div class="form-group">
+                    <label for="landlordRegisterFirstName">
+                        First Name
+                    </label>
+
+                    <input
+                            type="text"
+                            id="landlordRegisterFirstName"
+                            placeholder="Enter first name">
+                </div>
+
+                <div class="form-group">
+                    <label for="landlordRegisterLastName">
+                        Last Name
+                    </label>
+
+                    <input
+                            type="text"
+                            id="landlordRegisterLastName"
+                            placeholder="Enter last name">
+                </div>
+
+                <div class="form-group">
+                    <label for="landlordRegisterEmail">
+                        Email
+                    </label>
+
+                    <input
+                            type="email"
+                            id="landlordRegisterEmail"
+                            placeholder="Enter email">
+                </div>
+
+                <div class="form-group">
+                    <label for="landlordRegisterPhone">
+                        Phone
+                    </label>
+
+                    <input
+                            type="tel"
+                            id="landlordRegisterPhone"
+                            placeholder="Enter phone number">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="landlordRegisterPassword">
+                        Password
+                    </label>
+
+                    <input
+                            type="password"
+                            id="landlordRegisterPassword"
+                            placeholder="Enter password">
+                </div>
+
+                <div class="registration-actions">
+
+                    <button
+                            type="button"
+                            class="primary-btn"
+                            onclick="registerLandlord()">
+                        Create Account
+                    </button>
+
+                    <button
+                            type="button"
+                            class="secondary-btn"
+                            onclick="hideLandlordRegistration()">
+                        Back to Login
+                    </button>
+
+                </div>
+
+                <p id="landlordRegistrationMessage"
+                   class="message">
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================================
+     LANDLORD PROPERTY SETUP PAGE
+     ===================================================== -->
+
+    <section id="landlordSetupPage" class="page hidden">
+
+        <div class="registration-card">
+
+            <div id="landlordSetupContent">
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================================
+         NEW TENANT SETUP PAGE
+         ===================================================== -->
+    <section id="tenantSetupPage" class="page hidden">
+
+        <div class="registration-card">
+
+            <div id="setupStepContent">
+                <!-- JavaScript inserts setup step here -->
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MAIN APPLICATION
+         ===================================================== -->
     <section id="mainPage" class="page hidden">
 
-        <!-- NAVBAR -->
+        <!-- =================================================
+             NAVBAR
+             ================================================= -->
         <nav class="navbar">
 
             <div class="navbar-brand">
+
                 <span class="logo">🏠</span>
-                <span>Smart Property Rental</span>
+
+                <span>
+                    Smart Property Rental
+                </span>
+
             </div>
 
+
             <div class="navbar-user">
+
                 <span id="welcomeText"></span>
-                <button onclick="logout()" class="logout-btn">
+
+                <button
+                        type="button"
+                        onclick="logout()"
+                        class="logout-btn">
                     Logout
                 </button>
+
             </div>
 
         </nav>
 
 
-        <!-- TENANT DASHBOARD -->
+        <!-- =================================================
+             TENANT DASHBOARD
+             ================================================= -->
         <main id="tenantDashboard" class="dashboard hidden">
 
             <div class="dashboard-header">
+
                 <div>
-                    <h1>Tenant Dashboard</h1>
-                    <p>Find a property that matches your preferences.</p>
+
+                    <h1>
+                        Tenant Dashboard
+                    </h1>
+
+                    <p>
+                        Find a property that matches your preferences.
+                    </p>
+
                 </div>
 
-                <button onclick="loadTenantDashboard()" class="secondary-btn">
+
+                <button
+                        type="button"
+                        onclick="loadTenantDashboard()"
+                        class="secondary-btn">
                     Refresh
                 </button>
+
             </div>
 
 
             <!-- TENANT PROFILE -->
-            <div class="section-card">
-                <h2>My Profile</h2>
-
-                <div id="tenantProfile" class="profile-grid">
-                    Loading...
-                </div>
-            </div>
-
-
-            <!-- PROPERTY SEARCH -->
+            <!-- TENANT PROFILE -->
             <div class="section-card">
 
                 <div class="section-title-row">
+
                     <div>
-                        <h2>Matching Properties</h2>
-                        <p>Properties matching your saved preferences</p>
+
+                        <h2>
+                            My Profile
+                        </h2>
+
+                        <p>
+                            View and update your personal information.
+                        </p>
+
                     </div>
 
-                    <button onclick="searchProperties()" class="primary-btn small-btn">
-                        Search
-                    </button>
+                    <div class="profile-actions">
+
+                        <button
+                                type="button"
+                                onclick="showEditTenantProfile()"
+                                class="secondary-btn small-btn">
+                            Edit Profile
+                        </button>
+
+                        <button
+                                type="button"
+                                onclick="deleteTenantAccount()"
+                                class="danger-btn small-btn">
+                            Delete Account
+                        </button>
+
+                    </div>
+
                 </div>
 
-                <div id="propertyResults" class="property-grid">
-                    <div class="loading">
-                        Click Search to find matching properties.
+                <div
+                        id="tenantProfile"
+                        class="profile-grid">
+                    Loading...
+                </div>
+
+            </div>
+
+            <!-- RENTAL PREFERENCES -->
+            <div class="section-card">
+
+                <h2>
+                    My Rental Preferences
+                </h2>
+
+                <div
+                        id="tenantPreferences"
+                        class="profile-grid">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- AMENITY PREFERENCES -->
+            <div class="section-card">
+
+                <h2>
+                    My Amenity Preferences
+                </h2>
+
+                <div id="tenantAmenityPreferences">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- AVAILABLE PROPERTIES -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+
+                    <div>
+
+                        <h2>
+                            Available Properties
+                        </h2>
+
+                        <p>
+                            Browse properties currently available for rent.
+                        </p>
+
                     </div>
+
+
+                    <button
+                            type="button"
+                            onclick="loadAvailableProperties()"
+                            class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div
+                        id="availableProperties"
+                        class="property-grid">
+
+                    <div class="loading">
+                        Loading available properties...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROPERTY MATCHING -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+
+                    <div>
+
+                        <h2>
+                            Matching Properties
+                        </h2>
+
+                        <p>
+                            Properties matching your saved preferences.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                            type="button"
+                            onclick="searchProperties()"
+                            class="primary-btn small-btn">
+                        Match My Preferences
+                    </button>
+
+                </div>
+
+
+                <div
+                        id="propertyResults"
+                        class="property-grid">
+
+                    <div class="loading">
+                        Click "Match My Preferences" to find suitable properties.
+                    </div>
+
                 </div>
 
             </div>
@@ -129,15 +677,29 @@
             <div class="section-card">
 
                 <div class="section-title-row">
+
                     <div>
-                        <h2>My Applications</h2>
-                        <p>Track your rental applications</p>
+
+                        <h2>
+                            My Applications
+                        </h2>
+
+                        <p>
+                            Track your rental applications.
+                        </p>
+
                     </div>
 
-                    <button onclick="loadTenantApplications()" class="secondary-btn small-btn">
+
+                    <button
+                            type="button"
+                            onclick="loadTenantApplications()"
+                            class="secondary-btn small-btn">
                         Refresh
                     </button>
+
                 </div>
+
 
                 <div id="tenantApplications">
                     Loading...
@@ -150,15 +712,29 @@
             <div class="section-card">
 
                 <div class="section-title-row">
+
                     <div>
-                        <h2>My Leases</h2>
-                        <p>View your active and completed leases</p>
+
+                        <h2>
+                            My Leases
+                        </h2>
+
+                        <p>
+                            View your active and completed leases.
+                        </p>
+
                     </div>
 
-                    <button onclick="loadTenantLeases()" class="secondary-btn small-btn">
+
+                    <button
+                            type="button"
+                            onclick="loadTenantLeases()"
+                            class="secondary-btn small-btn">
                         Refresh
                     </button>
+
                 </div>
+
 
                 <div id="tenantLeases">
                     Loading...
@@ -169,65 +745,157 @@
         </main>
 
 
-        <!-- LANDLORD DASHBOARD -->
+        <!-- =================================================
+             LANDLORD DASHBOARD
+             ================================================= -->
         <main id="landlordDashboard" class="dashboard hidden">
 
             <div class="dashboard-header">
+
                 <div>
-                    <h1>Landlord Dashboard</h1>
-                    <p>Manage your properties and rental applications.</p>
+
+                    <h1>
+                        Landlord Dashboard
+                    </h1>
+
+                    <p>
+                        Manage your properties and rental applications.
+                    </p>
+
                 </div>
 
-                <button onclick="loadLandlordDashboard()" class="secondary-btn">
+
+                <button
+                        type="button"
+                        onclick="loadLandlordDashboard()"
+                        class="secondary-btn">
                     Refresh
                 </button>
+
             </div>
 
 
             <!-- LANDLORD PROFILE -->
+            <!-- LANDLORD PROFILE -->
             <div class="section-card">
-                <h2>My Profile</h2>
 
-                <div id="landlordProfile" class="profile-grid">
+                <div class="section-title-row">
+
+                    <div>
+                        <h2>
+                            My Profile
+                        </h2>
+
+                        <p>
+                            Landlord account information
+                        </p>
+                    </div>
+
+                    <div class="profile-actions">
+
+                        <button
+                                type="button"
+                                class="secondary-btn small-btn"
+                                onclick="showLandlordProfileEdit()">
+                            Edit Profile
+                        </button>
+
+                        <button
+                                type="button"
+                                class="danger-btn small-btn"
+                                onclick="deleteLandlordAccount()">
+                            Delete Account
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div
+                        id="landlordProfile"
+                        class="profile-grid">
                     Loading...
                 </div>
+
             </div>
 
 
             <!-- PROPERTIES -->
+            <!-- PROPERTIES -->
             <div class="section-card">
 
                 <div class="section-title-row">
+
                     <div>
-                        <h2>My Properties</h2>
-                        <p>Properties listed under your account</p>
+
+                        <h2>
+                            My Properties
+                        </h2>
+
+                        <p>
+                            Properties listed under your account
+                        </p>
+
                     </div>
 
-                    <button onclick="loadLandlordProperties()" class="secondary-btn small-btn">
-                        Refresh
-                    </button>
+
+                    <div class="profile-actions">
+
+                        <button
+                                type="button"
+                                onclick="showLandlordPropertySetup()"
+                                class="primary-btn small-btn">
+                            + Add Property
+                        </button>
+
+
+                        <button
+                                type="button"
+                                onclick="loadLandlordProperties()"
+                                class="secondary-btn small-btn">
+                            Refresh
+                        </button>
+
+                    </div>
+
                 </div>
 
-                <div id="landlordProperties" class="property-grid">
+
+                <div
+                        id="landlordProperties"
+                        class="property-grid">
                     Loading...
                 </div>
 
             </div>
-
 
             <!-- APPLICATIONS -->
             <div class="section-card">
 
                 <div class="section-title-row">
+
                     <div>
-                        <h2>Applications</h2>
-                        <p>Review applications for your properties</p>
+
+                        <h2>
+                            Applications
+                        </h2>
+
+                        <p>
+                            Review applications for your properties
+                        </p>
+
                     </div>
 
-                    <button onclick="loadLandlordApplications()" class="secondary-btn small-btn">
+
+                    <button
+                            type="button"
+                            onclick="loadLandlordApplications()"
+                            class="secondary-btn small-btn">
                         Refresh
                     </button>
+
                 </div>
+
 
                 <div id="landlordApplications">
                     Loading...
@@ -240,15 +908,29 @@
             <div class="section-card">
 
                 <div class="section-title-row">
+
                     <div>
-                        <h2>Leases</h2>
-                        <p>View leases for your properties</p>
+
+                        <h2>
+                            Leases
+                        </h2>
+
+                        <p>
+                            View leases for your properties
+                        </p>
+
                     </div>
 
-                    <button onclick="loadLandlordLeases()" class="secondary-btn small-btn">
+
+                    <button
+                            type="button"
+                            onclick="loadLandlordLeases()"
+                            class="secondary-btn small-btn">
                         Refresh
                     </button>
+
                 </div>
+
 
                 <div id="landlordLeases">
                     Loading...
@@ -259,34 +941,243 @@
         </main>
 
 
-        <!-- ADMIN DASHBOARD -->
+        <!-- =================================================
+             ADMIN DASHBOARD
+             ================================================= -->
         <main id="adminDashboard" class="dashboard hidden">
 
             <div class="dashboard-header">
+
                 <div>
-                    <h1>Admin Dashboard</h1>
-                    <p>System administration overview.</p>
+
+                    <h1>
+                        Admin Dashboard
+                    </h1>
+
+                    <p>
+                        Manage and monitor the rental system.
+                    </p>
+
                 </div>
+
+
+                <button
+                        type="button"
+                        onclick="loadAdminDashboard()"
+                        class="secondary-btn">
+                    Refresh
+                </button>
+
             </div>
 
+
+            <!-- ADMIN STATISTICS -->
             <div class="admin-grid">
 
                 <div class="stat-card">
-                    <div class="stat-icon">👤</div>
-                    <h3>Administrator</h3>
-                    <p id="adminName">System Administrator</p>
+
+                    <div class="stat-icon">
+                        👤
+                    </div>
+
+                    <h3>
+                        Tenants
+                    </h3>
+
+                    <p id="adminTenantCount">
+                        Loading...
+                    </p>
+
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">🏠</div>
-                    <h3>Property Rental System</h3>
-                    <p>System is operational</p>
-                </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">🔐</div>
-                    <h3>Authentication</h3>
-                    <p>Role-based access enabled</p>
+
+                    <div class="stat-icon">
+                        🏢
+                    </div>
+
+                    <h3>
+                        Landlords
+                    </h3>
+
+                    <p id="adminLandlordCount">
+                        Loading...
+                    </p>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        🏠
+                    </div>
+
+                    <h3>
+                        Properties
+                    </h3>
+
+                    <p id="adminPropertyCount">
+                        Loading...
+                    </p>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        📋
+                    </div>
+
+                    <h3>
+                        Applications
+                    </h3>
+
+                    <p id="adminApplicationCount">
+                        Loading...
+                    </p>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        📄
+                    </div>
+
+                    <h3>
+                        Leases
+                    </h3>
+
+                    <p id="adminLeaseCount">
+                        Loading...
+                    </p>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        ⏳
+                    </div>
+
+                    <h3>
+                        Pending Verification
+                    </h3>
+
+                    <p id="adminPendingLandlordCount">
+                        Loading...
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- LANDLORD VERIFICATION -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+
+                    <div>
+
+                        <h2>
+                            Landlord Verification
+                        </h2>
+
+                        <p>
+                            Review landlord accounts and verification status.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                            type="button"
+                            onclick="loadAdminLandlords()"
+                            class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div id="adminLandlords">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- TENANTS -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+
+                    <div>
+
+                        <h2>
+                            Tenants
+                        </h2>
+
+                        <p>
+                            View registered tenants.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                            type="button"
+                            onclick="loadAdminTenants()"
+                            class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div id="adminTenants">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- PROPERTIES -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+
+                    <div>
+
+                        <h2>
+                            Properties
+                        </h2>
+
+                        <p>
+                            View all properties in the system.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                            type="button"
+                            onclick="loadAdminProperties()"
+                            class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div id="adminProperties">
+                    Loading...
                 </div>
 
             </div>
@@ -297,7 +1188,10 @@
 
 </div>
 
+
+<!-- JAVASCRIPT -->
 <script src="app.js"></script>
 
 </body>
 </html>
+

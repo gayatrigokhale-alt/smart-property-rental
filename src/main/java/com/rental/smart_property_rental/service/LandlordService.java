@@ -1,5 +1,9 @@
 
-        package com.rental.smart_property_rental.service;
+package com.rental.smart_property_rental.service;
+import com.rental.smart_property_rental.model.Property;
+import com.rental.smart_property_rental.repository.PropertyRepository;
+import com.rental.smart_property_rental.repository.PropertyAmenityRepository;
+import com.rental.smart_property_rental.repository.LeaseRepository;
 import com.rental.smart_property_rental.dto.LandlordUpdateRequest;
 import com.rental.smart_property_rental.dto.LandlordRegisterRequest;
 import com.rental.smart_property_rental.model.Landlord;
@@ -13,13 +17,23 @@ public class LandlordService {
 
     private final LandlordRepository landlordRepository;
     private final PasswordService passwordService;
+    private final PropertyRepository propertyRepository;
+    private final PropertyAmenityRepository propertyAmenityRepository;
+    private final LeaseRepository leaseRepository;
 
     public LandlordService(
             LandlordRepository landlordRepository,
-            PasswordService passwordService) {
+            PasswordService passwordService,
+            PropertyRepository propertyRepository,
+            PropertyAmenityRepository propertyAmenityRepository,
+            LeaseRepository leaseRepository) {
 
         this.landlordRepository = landlordRepository;
         this.passwordService = passwordService;
+        this.propertyRepository = propertyRepository;
+        this.propertyAmenityRepository =
+                propertyAmenityRepository;
+        this.leaseRepository = leaseRepository;
     }
 
     public List<Landlord> getAllLandlords() {
@@ -123,12 +137,30 @@ public class LandlordService {
     //Update email
     public Landlord updateLandlord(
             String landlordId,
+            String userId,
             LandlordUpdateRequest request) {
+
+        if (userId == null || userId.isBlank()) {
+
+            throw new RuntimeException(
+                    "X-User-Id header is required"
+            );
+        }
+
+        // A landlord can only update their own account
+        if (!userId.equals(landlordId)) {
+
+            throw new RuntimeException(
+                    "You are not authorized to update this landlord profile"
+            );
+        }
 
         Landlord landlord =
                 landlordRepository.findByLandlordId(landlordId)
                         .orElseThrow(() ->
-                                new RuntimeException("Landlord not found"));
+                                new RuntimeException(
+                                        "Landlord not found"
+                                ));
 
         // Check whether the new email already belongs to another landlord
         landlordRepository.findByEmail(request.getEmail())
@@ -150,7 +182,80 @@ public class LandlordService {
 
         return landlordRepository.save(landlord);
     }
+    // Delete landlord account
+    public void deleteLandlord(
+            String landlordId,
+            String userId) {
 
+        if (userId == null || userId.isBlank()) {
+
+            throw new RuntimeException(
+                    "X-User-Id header is required"
+            );
+        }
+
+        // A landlord can only delete their own account
+        if (!userId.equals(landlordId)) {
+
+            throw new RuntimeException(
+                    "You are not authorized to delete this landlord account"
+            );
+        }
+
+        Landlord landlord =
+                landlordRepository.findByLandlordId(landlordId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Landlord not found"
+                                ));
+
+        // Get all properties belonging to this landlord
+        List<Property> properties =
+                propertyRepository.findByLandlordId(landlordId);
+
+        // Check every property for an active lease
+        for (Property property : properties) {
+
+            boolean hasActiveLease =
+                    leaseRepository
+                            .findByPropertyId(
+                                    property.getPropertyId()
+                            )
+                            .stream()
+                            .anyMatch(lease ->
+                                    "Active".equalsIgnoreCase(
+                                            lease.getLeaseStatus()
+                                    )
+                            );
+
+            if (hasActiveLease) {
+
+                throw new RuntimeException(
+                        "Landlord account cannot be deleted while an active lease exists for property "
+                                + property.getPropertyId()
+                );
+            }
+        }
+
+        // No active leases exist.
+        // Delete property amenities and properties.
+        for (Property property : properties) {
+
+            propertyAmenityRepository
+                    .findByPropertyId(
+                            property.getPropertyId()
+                    )
+                    .ifPresent(propertyAmenity ->
+                            propertyAmenityRepository
+                                    .delete(propertyAmenity)
+                    );
+
+            propertyRepository.delete(property);
+        }
+
+        // Finally delete landlord
+        landlordRepository.delete(landlord);
+    }
 
 }
 
