@@ -24,7 +24,8 @@ public class PropertyResponse {
     private String propertyStatus;
 
     private List<String> amenities;
-
+    private List<String> imageFileIds;
+    private String videoFileId;
 
     // Property ID
     public String getPropertyId() {
@@ -183,5 +184,20 @@ public class PropertyResponse {
 
     public void setAmenities(List<String> amenities) {
         this.amenities = amenities;
+    }
+    public List<String> getImageFileIds() {
+        return imageFileIds;
+    }
+
+    public void setImageFileIds(List<String> imageFileIds) {
+        this.imageFileIds = imageFileIds;
+    }
+
+    public String getVideoFileId() {
+        return videoFileId;
+    }
+
+    public void setVideoFileId(String videoFileId) {
+        this.videoFileId = videoFileId;
     }
 }

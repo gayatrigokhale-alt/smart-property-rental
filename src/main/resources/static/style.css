@@ -1,3 +1,4 @@
+
 * {
     margin: 0;
     padding: 0;
@@ -359,6 +360,171 @@ button {
     margin-top: 5px;
 }
 
+/* =====================================================
+   FORM LAYOUTS
+   Keeps registration/setup forms compact and centered.
+===================================================== */
+
+.registration-card {
+    width: min(700px, calc(100% - 40px));
+    margin: 40px auto;
+    padding: 30px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+}
+
+.registration-card h2 {
+    margin-bottom: 8px;
+    color: #111827;
+}
+
+.registration-card .subtitle,
+.registration-card .setup-subtitle {
+    color: #64748b;
+    margin-bottom: 24px;
+}
+
+.registration-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.registration-form .full-width,
+.registration-form .registration-actions,
+.registration-form .message {
+    grid-column: 1 / -1;
+}
+
+.registration-form input,
+.registration-form select,
+.registration-form textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    outline: none;
+}
+
+.registration-form input:focus,
+.registration-form select:focus,
+.registration-form textarea:focus {
+    border-color: #2563eb;
+}
+
+.registration-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.registration-actions button {
+    min-width: 130px;
+}
+
+/* Landlord and tenant setup pages */
+#landlordSetupPage,
+#tenantSetupPage {
+    padding: 20px 0 50px;
+}
+
+#landlordSetupPage .registration-card,
+#tenantSetupPage .registration-card {
+    max-width: 700px;
+}
+
+/* Landlord property amenity form: one amenity per row */
+#landlordPropertyAmenities .amenity-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#landlordPropertyAmenities .amenity-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+#landlordPropertyAmenities .amenity-option:hover {
+    background: #f1f5f9;
+}
+
+#landlordPropertyAmenities .amenity-option input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+}
+
+#landlordPropertyAmenities .amenity-option span {
+    font-size: 14px;
+    color: #334155;
+}
+
+/* Tenant amenity setup: one amenity per row */
+#setupAmenities .amenity-grid,
+#tenantSetupPage .amenity-checkbox-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#setupAmenities .amenity-option,
+#tenantSetupPage .amenity-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+#setupAmenities .amenity-option:hover,
+#tenantSetupPage .amenity-checkbox:hover {
+    background: #f1f5f9;
+}
+
+#setupAmenities .amenity-option input,
+#tenantSetupPage .amenity-checkbox input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+}
+
+#setupAmenities .amenity-option span,
+#tenantSetupPage .amenity-checkbox span {
+    font-size: 14px;
+    color: #334155;
+}
+
+/* Property edit / amenity edit forms stay compact */
+.property-edit-form,
+.property-edit-form .property-form-actions {
+    width: 100%;
+}
+
+.property-edit-form .form-group {
+    margin-bottom: 16px;
+}
+
+/* ===================================================== */
+
 /* =========================
    PROPERTY CARDS
 ========================= */
@@ -422,7 +588,55 @@ button {
 .apply-btn {
     width: 100%;
 }
+.property-card-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+/* =========================
+   PROPERTY MEDIA
+========================= */
 
+.property-media {
+    margin-top: 15px;
+}
+
+.property-media strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.property-image-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.property-image {
+    width: 100%;
+    height: 250px;
+    object-fit: contain;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    display: block;
+    cursor: pointer;
+}
+
+.property-video {
+    width: 100%;
+    height: 250px;
+    object-fit: contain;
+    background: #000;
+    border-radius: 10px;
+    display: block;
+}
+
+.property-media p {
+    margin-top: 4px;
+    color: #64748b;
+}
 /* =====================================================
    PROPERTY EDIT FORM
    ===================================================== */
@@ -673,7 +887,33 @@ button {
     border-radius: 8px;
 }
 
+/* =========================
+   TENANT AMENITY PREFERENCES
+========================= */
 
+#tenantAmenityPreferences {
+    margin-top: 18px;
+}
+
+#tenantAmenityPreferences .amenity-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+#tenantAmenityPreferences .amenity-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
 /* =========================
    RESPONSIVE
 ========================= */
@@ -741,6 +981,30 @@ button {
         max-width: 400px;
     }
 
+    .registration-card {
+        width: calc(100% - 30px);
+        padding: 22px;
+        margin: 25px auto;
+    }
+
+    .registration-form {
+        grid-template-columns: 1fr;
+    }
+
+    .registration-form .full-width,
+    .registration-form .registration-actions,
+    .registration-form .message {
+        grid-column: 1;
+    }
+
+    .registration-actions {
+        flex-direction: column;
+    }
+
+    .registration-actions button {
+        width: 100%;
+    }
+
     .login-brand h1 {
         font-size: 32px;
     }
@@ -782,44 +1046,26 @@ button {
         margin-bottom: 10px;
     }
 
-    .amenity-list {
+    .property-amenities .amenity-list {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+        margin-top: 5px;
     }
 
-    .amenity-tag {
-        display: inline-block;
+    .property-amenities .amenity-tag {
+        display: inline-flex;
+        align-items: center;
         padding: 6px 10px;
         border-radius: 20px;
         font-size: 13px;
         background: #f1f5f9;
         color: #334155;
-    }
-
-    .property-amenities,
-    #tenantAmenityPreferences {
-        margin-top: 18px;
-    }
-
-    #tenantAmenityPreferences .amenity-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 12px;
-    }
-
-    #tenantAmenityPreferences .amenity-tag {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 14px;
-        border-radius: 20px;
-        background: #f1f5f9;
-        color: #334155;
-        font-size: 13px;
-        font-weight: 500;
         border: 1px solid #e2e8f0;
+        white-space: nowrap;
     }
+
+
     .profile-edit-form {
         grid-template-columns: 1fr;
     }
@@ -962,4 +1208,73 @@ button {
         }
 
     }
+}
+
+
+/* PROPERTY MEDIA MODAL */
+
+.media-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 30px;
+}
+
+.media-modal-content {
+    position: relative;
+    background: #ffffff;
+    width: min(900px, 95vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 14px;
+    padding: 30px;
+}
+
+.media-modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.media-modal-content h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.media-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    border: none;
+    background: transparent;
+    font-size: 30px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.media-viewer-images {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.media-viewer-images img {
+    width: 100%;
+    height: 300px;
+    object-fit: contain;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+}
+
+.media-viewer-video {
+    width: 100%;
+    max-height: 500px;
+    background: #000;
+    border-radius: 10px;
+    display: block;
 }

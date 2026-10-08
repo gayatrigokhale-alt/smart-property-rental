@@ -245,7 +245,9 @@ async function apiFetch(url, options = {}) {
     if (!options.headers) {
         options.headers = {};
     }
-    options.headers["Content-Type"] = "application/json";
+    if (!(options.body instanceof FormData)) {
+        options.headers["Content-Type"] = "application/json";
+    }
 
 
     // Tenant / Landlord authentication
@@ -317,21 +319,50 @@ function hideTenantRegistration() {
 
 
 async function registerTenant() {
-    const message = document.getElementById("registrationMessage");
+
+    const registerButton =
+        document.getElementById("tenantRegisterButton");
+
+    if (registerButton.disabled) {
+        return;
+    }
+
+    const message =
+        document.getElementById("registrationMessage");
+
     message.textContent = "";
     message.className = "message";
 
 
-    const firstName = document.getElementById("registerFirstName").value.trim();
-    const lastName = document.getElementById("registerLastName").value.trim();
-    const email = document.getElementById("registerEmail").value.trim();
-    const phone = document.getElementById("registerPhone").value.trim();
-    const gender = document.getElementById("registerGender").value;
-    const occupation = document.getElementById("registerOccupation").value.trim();
-    const age = Number(document.getElementById("registerAge").value);
-    const tenantType = document.getElementById("registerTenantType").value;
-    const hasPets = document.getElementById("registerHasPets").value === "true";
-    const password = document.getElementById("registerPassword").value;
+    const firstName =
+        document.getElementById("registerFirstName").value.trim();
+
+    const lastName =
+        document.getElementById("registerLastName").value.trim();
+
+    const email =
+        document.getElementById("registerEmail").value.trim();
+
+    const phone =
+        document.getElementById("registerPhone").value.trim();
+
+    const gender =
+        document.getElementById("registerGender").value;
+
+    const occupation =
+        document.getElementById("registerOccupation").value.trim();
+
+    const age =
+        Number(document.getElementById("registerAge").value);
+
+    const tenantType =
+        document.getElementById("registerTenantType").value;
+
+    const hasPets =
+        document.getElementById("registerHasPets").value === "true";
+
+    const password =
+        document.getElementById("registerPassword").value;
 
 
     // BASIC VALIDATION
@@ -346,45 +377,66 @@ async function registerTenant() {
         !tenantType ||
         !password
     ) {
-        message.textContent = "Please fill in all required fields.";
+        message.textContent =
+            "Please fill in all required fields.";
+
         message.classList.add("error");
         return;
     }
 
-    const namePattern = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
+
+    const namePattern =
+        /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
 
     if (!namePattern.test(firstName)) {
-        message.textContent = "First name can contain only letters.";
+        message.textContent =
+            "First name can contain only letters.";
+
         message.classList.add("error");
         return;
     }
+
 
     if (!namePattern.test(lastName)) {
-        message.textContent = "Last name can contain only letters.";
+        message.textContent =
+            "Last name can contain only letters.";
+
         message.classList.add("error");
         return;
     }
+
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        message.textContent = "Please enter a valid email address.";
+        message.textContent =
+            "Please enter a valid email address.";
+
         message.classList.add("error");
         return;
     }
+
 
     if (!/^(\+91[- ]?)?[6-9]\d{9}$/.test(phone)) {
-        message.textContent = "Please enter a valid Indian phone number.";
+        message.textContent =
+            "Please enter a valid Indian phone number.";
+
         message.classList.add("error");
         return;
     }
 
+
     if (age < 18 || age > 100) {
-        message.textContent = "Age must be between 18 and 100.";
+        message.textContent =
+            "Age must be between 18 and 100.";
+
         message.classList.add("error");
         return;
     }
 
 
     if (password.length < 6) {
-        message.textContent = "Password must be at least 6 characters.";
+        message.textContent =
+            "Password must be at least 6 characters.";
+
         message.classList.add("error");
         return;
     }
@@ -405,13 +457,20 @@ async function registerTenant() {
 
 
     try {
-        const data = await apiFetch("/api/tenants", {
-            method: "POST",
-            body: JSON.stringify(tenantData)
-        });
+
+        registerButton.disabled = true;
+        registerButton.textContent = "Creating Account...";
+
+        const data =
+            await apiFetch("/api/tenants", {
+                method: "POST",
+                body: JSON.stringify(tenantData)
+            });
 
 
-        message.textContent = `Account created successfully! Your Tenant ID is ${data.tenantId}.`;
+        message.textContent =
+            `Account created successfully! Your Tenant ID is ${data.tenantId}.`;
+
         message.classList.add("success");
 
 
@@ -432,19 +491,42 @@ async function registerTenant() {
         currentUser.role = "tenant";
         currentUser.userId = data.tenantId;
         currentUser.email = data.email;
-        currentUser.name = `${data.firstName || ""} ${data.lastName || ""}`.trim();
+        currentUser.name =
+            `${data.firstName || ""} ${data.lastName || ""}`.trim();
 
 
-        sessionStorage.setItem("role", currentUser.role);
-        sessionStorage.setItem("userId", currentUser.userId);
-        sessionStorage.setItem("email", currentUser.email);
-        sessionStorage.setItem("name", currentUser.name);
+        sessionStorage.setItem(
+            "role",
+            currentUser.role
+        );
+
+        sessionStorage.setItem(
+            "userId",
+            currentUser.userId
+        );
+
+        sessionStorage.setItem(
+            "email",
+            currentUser.email
+        );
+
+        sessionStorage.setItem(
+            "name",
+            currentUser.name
+        );
 
 
         showTenantPreferenceSetup();
+
     } catch (error) {
-        message.textContent = error.message;
+
+        message.textContent =
+            error.message;
+
         message.classList.add("error");
+
+        registerButton.disabled = false;
+        registerButton.textContent = "Create Account";
     }
 }
 // =====================================================
@@ -521,7 +603,12 @@ async function registerLandlord() {
 
     message.textContent = "";
     message.className = "message";
+    const registerButton =
+        document.getElementById("landlordRegisterButton");
 
+    if (registerButton.disabled) {
+        return;
+    }
 
     const firstName =
         document.getElementById("landlordRegisterFirstName")
@@ -626,6 +713,8 @@ async function registerLandlord() {
 
     try {
 
+        registerButton.disabled = true;
+        registerButton.textContent = "Creating Account...";
 
         const data = await apiFetch(
             "/api/landlords/register",
@@ -691,15 +780,16 @@ async function registerLandlord() {
 
 
 
-    } catch (error) {
+     } catch (error) {
 
+    message.textContent =
+        error.message;
 
-        message.textContent =
-            error.message;
+    message.classList.add("error");
 
-
-        message.classList.add("error");
-    }
+    registerButton.disabled = false;
+    registerButton.textContent = "Create Account";
+}
 }
 // TENANT DASHBOARD
 async function loadTenantDashboard() {
@@ -871,7 +961,7 @@ async function updateTenantProfile() {
         return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updatedEmail)) {
         message.textContent = "Please enter a valid email address.";
         message.classList.add("error");
         return;
@@ -1128,11 +1218,17 @@ function showAddTenantPreferences() {
      </div>
      <div class="form-group">
        <label>Minimum Bathrooms</label>
-       <input type="number" id="prefBathrooms" min="1" max="20 placeholder="e.g. 2">
+       <input type="number" id="prefBathrooms" min="1" max="20" placeholder="e.g. 2">
      </div>
      <div class="form-group">
        <label>Number of Occupants</label>
-       <input type="number" id="prefOccupants" min="1" max="20" placeholder="e.g. 2">
+      <input
+    type="number"
+    id="prefOccupants"
+    min="1"
+    max="20"
+    oninput="if (this.value > 20) this.value = 20"
+    placeholder="e.g. 2">
      </div>
      <div class="form-group">
        <label>Furnishing Preference</label>
@@ -1412,11 +1508,12 @@ async function showEditTenantPreferences() {
                     <label>Number of Occupants</label>
 
                     <input
-                        type="number"
-                        id="prefOccupants"
-                        min="1"
-                        max="20"
-                        value="${safe(preference.numberOfOccupants)}">
+    type="number"
+    id="prefOccupants"
+    min="1"
+    max="20"
+    oninput="if (this.value > 20) this.value = 20"
+    value="${safe(preference.numberOfOccupants)}">
                 </div>
 
                 <div class="form-group">
@@ -1929,20 +2026,41 @@ async function searchProperties() {
     const container = document.getElementById("propertyResults");
     container.innerHTML = '<div class="loading">Searching...</div>';
 
-
     try {
         const properties = await apiFetch(`/api/properties/search/${currentUser.userId}`, {
             method: "GET"
         });
-
 
         if (!properties || properties.length === 0) {
             container.innerHTML = '<div class="empty">No properties currently match your preferences.</div>';
             return;
         }
 
+        const availableProperties = await apiFetch("/api/properties/available", {
+            method: "GET"
+        });
+
+        const mediaMap = new Map(
+            availableProperties.map(property => [
+                property.propertyId,
+                {
+                    imageFileIds: property.imageFileIds || [],
+                    videoFileId: property.videoFileId || ""
+                }
+            ])
+        );
+
+        properties.forEach(property => {
+            const media = mediaMap.get(property.propertyId);
+
+            if (media) {
+                property.imageFileIds = media.imageFileIds;
+                property.videoFileId = media.videoFileId;
+            }
+        });
 
         container.innerHTML = properties.map(property => createPropertyCard(property)).join("");
+
     } catch (error) {
         container.innerHTML = `<div class="error">${safe(error.message)}</div>`;
     }
@@ -1950,34 +2068,105 @@ async function searchProperties() {
 
 
 function createPropertyCard(property) {
-    const amenities = property.amenities || [];
-    return `
-   <div class="property-card">
-     <h3>${safe(property.propertyId)} - ${safe(property.propertyType)}</h3>
-     <div class="property-location">${safe(property.location)}, ${safe(property.city)}</div>
-     <div class="property-details">
-       <div class="detail"><strong>BHK</strong><br>${safe(property.bhk)}</div>
-       <div class="detail"><strong>Area</strong><br>${safe(property.areaSqft)} sqft</div>
-       <div class="detail"><strong>Bathrooms</strong><br>${safe(property.numberOfBathrooms)}</div>
-       <div class="detail"><strong>Floor</strong><br>${safe(property.floorNumber)}</div>
-       <div class="detail"><strong>Furnishing</strong><br>${safe(property.furnishingStatus)}</div>
-     </div>
-     <div class="rent">${formatNumber(property.monthlyRent)} <span>/ month</span></div>
-     <div class="property-amenities">
-       <strong>Amenities</strong>
-       <div class="amenity-list">
-         ${
-        amenities.length > 0
-            ? amenities.map(amenity => `<span class="amenity-tag">${safe(amenity)}</span>`).join("")
-            : "No amenities listed"
-    }
-       </div>
-     </div>
-     <button class="primary-btn apply-btn" onclick="applyForProperty('${safe(property.propertyId)}')">Apply for Property</button>
-   </div>
- `;
-}
 
+    console.log("TENANT PROPERTY:", property);
+    console.log("IMAGE IDS:", property.imageFileIds);
+    console.log("VIDEO ID:", property.videoFileId);
+
+    const amenities = property.amenities || [];
+    const imageIds = property.imageFileIds || [];
+    const videoId = property.videoFileId;
+
+    return `
+        <div
+            class="property-card"
+            data-images='${JSON.stringify(imageIds)}'
+            data-video="${safe(videoId === "-" ? "" : videoId)}"
+            data-amenities='${JSON.stringify(amenities)}'>
+
+            <h3>
+                ${safe(property.propertyId)} -
+                ${safe(property.propertyType)}
+            </h3>
+
+            <div class="property-location">
+                ${safe(property.location)}, ${safe(property.city)}
+            </div>
+
+            <div class="property-details">
+
+                <div class="detail">
+                    <strong>BHK</strong>
+                    <br>
+                    ${safe(property.bhk)}
+                </div>
+
+                <div class="detail">
+                    <strong>Area</strong>
+                    <br>
+                    ${safe(property.areaSqft)} sqft
+                </div>
+
+                <div class="detail">
+                    <strong>Bathrooms</strong>
+                    <br>
+                    ${safe(property.numberOfBathrooms)}
+                </div>
+
+                <div class="detail">
+                    <strong>Floor</strong>
+                    <br>
+                    ${safe(property.floorNumber)}
+                </div>
+
+                <div class="detail">
+                    <strong>Furnishing</strong>
+                    <br>
+                    ${safe(property.furnishingStatus)}
+                </div>
+
+            </div>
+
+            <div class="rent">
+                ${formatNumber(property.monthlyRent)}
+                <span>/ month</span>
+            </div>
+
+            <div class="property-card-buttons">
+
+                <button
+                    type="button"
+                    class="primary-btn small-btn"
+                    onclick="showPropertyMedia(this)">
+                    View Photos & Video
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-btn small-btn"
+                    onclick="showPropertyAmenities(this)">
+                    View Amenities
+                </button>
+
+            </div>
+
+            <button
+                class="primary-btn apply-btn"
+                onclick="applyForProperty('${safe(property.propertyId)}')">
+                Apply for Property
+            </button>
+
+        </div>
+    `;
+}
+function viewImageFullscreen(image) {
+
+    if (image.requestFullscreen) {
+        image.requestFullscreen();
+    } else if (image.webkitRequestFullscreen) {
+        image.webkitRequestFullscreen();
+    }
+}
 
 async function applyForProperty(propertyId) {
     const application = {
@@ -2590,109 +2779,394 @@ async function loadLandlordProperties() {
 
 function createLandlordPropertyCard(property) {
 
+    const imageIds = property.imageFileIds || [];
+    const videoId = property.videoFileId;
 
     return `
-   <div class="property-card" id="property-card-${safe(property.propertyId)}">
+        <div
+            class="property-card"
+            id="property-card-${safe(property.propertyId)}"
+            data-images='${JSON.stringify(imageIds)}'
+            data-video="${safe(videoId || "")}">
+
+            <h3>
+                ${safe(property.propertyId)} -
+                ${safe(property.propertyType)}
+            </h3>
+
+            <div class="property-location">
+                ${safe(property.location)}, ${safe(property.city)}
+            </div>
+
+            <div class="property-details">
+
+                <div class="detail">
+                    <strong>BHK</strong>
+                    <br>
+                    ${safe(property.bhk)}
+                </div>
+
+                <div class="detail">
+                    <strong>Area</strong>
+                    <br>
+                    ${safe(property.areaSqft)} sqft
+                </div>
+
+                <div class="detail">
+                    <strong>Bathrooms</strong>
+                    <br>
+                    ${safe(property.numberOfBathrooms)}
+                </div>
+
+                <div class="detail">
+                    <strong>Floor</strong>
+                    <br>
+                    ${safe(property.floorNumber)}
+                </div>
+
+                <div class="detail">
+                    <strong>Furnishing</strong>
+                    <br>
+                    ${safe(property.furnishingStatus)}
+                </div>
+
+                <div class="detail">
+                    <strong>Status</strong>
+                    <br>
+                    ${safe(property.propertyStatus)}
+                </div>
+
+            </div>
+
+            <div class="rent">
+                ₹${formatNumber(property.monthlyRent)}
+                <span>/ month</span>
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn small-btn"
+               onclick="showPropertyMedia(this)">
+                View Photos & Video
+            </button>
+
+            <div class="property-actions">
+
+                <button
+                    type="button"
+                    class="secondary-btn small-btn"
+                    onclick='showEditPropertyForm(${JSON.stringify(property)})'>
+                    Edit Property
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-btn small-btn"
+                    onclick="showEditPropertyAmenities('${safe(property.propertyId)}')">
+                    Edit Amenities
+                </button>
+
+                <button
+                    type="button"
+                    class="danger-btn small-btn"
+                    onclick="deleteLandlordProperty('${safe(property.propertyId)}')">
+                    Delete Property
+                </button>
+
+            </div>
+
+        </div>
+    `;
+}
+function showPropertyMedia(button) {
+
+    const propertyCard =
+        button.closest(".property-card");
+
+    if (!propertyCard) {
+        alert("Property card not found.");
+        return;
+    }
+
+    const images =
+        JSON.parse(
+            propertyCard.getAttribute("data-images") || "[]"
+        );
+
+    const rawVideoId =
+        propertyCard.getAttribute("data-video") || "";
+
+    const videoId =
+        rawVideoId === "-" ? "" : rawVideoId;
+
+    const modal =
+        document.createElement("div");
+
+    modal.style.position = "fixed";
+    modal.style.top = "0";
+    modal.style.left = "0";
+    modal.style.width = "100%";
+    modal.style.height = "100%";
+    modal.style.background = "rgba(0,0,0,0.75)";
+    modal.style.zIndex = "99999";
+    modal.style.display = "flex";
+    modal.style.alignItems = "center";
+    modal.style.justifyContent = "center";
+    modal.style.padding = "30px";
+    modal.style.boxSizing = "border-box";
+
+    const content =
+        document.createElement("div");
+
+    content.style.background = "white";
+    content.style.borderRadius = "14px";
+    content.style.padding = "30px";
+    content.style.width = "90%";
+    content.style.maxWidth = "900px";
+    content.style.maxHeight = "90%";
+    content.style.overflowY = "auto";
+    content.style.position = "relative";
+
+    const closeButton =
+        document.createElement("button");
+
+    closeButton.textContent = "×";
+    closeButton.type = "button";
+
+    closeButton.style.position = "absolute";
+    closeButton.style.top = "10px";
+    closeButton.style.right = "15px";
+    closeButton.style.fontSize = "30px";
+    closeButton.style.border = "none";
+    closeButton.style.background = "none";
+    closeButton.style.cursor = "pointer";
+
+    closeButton.onclick = function () {
+        modal.remove();
+    };
+
+    const title =
+        document.createElement("h2");
+
+    title.textContent =
+        "Property Photos & Video";
+
+    content.appendChild(closeButton);
+    content.appendChild(title);
 
 
-       <h3>
-           ${safe(property.propertyId)} -
-           ${safe(property.propertyType)}
-       </h3>
+    /* IMAGES */
+
+    const imageHeading =
+        document.createElement("h3");
+
+    imageHeading.textContent =
+        "Property Images";
+
+    content.appendChild(imageHeading);
+
+    if (images.length === 0) {
+
+        const message =
+            document.createElement("p");
+
+        message.textContent =
+            "No images available.";
+
+        content.appendChild(message);
+
+    } else {
+
+        images.forEach(function (imageId) {
+
+            const image =
+                document.createElement("img");
+
+            image.src =
+                "/api/properties/media/" +
+                encodeURIComponent(imageId);
+
+            image.alt =
+                "Property image";
+
+            image.style.width = "100%";
+            image.style.maxHeight = "400px";
+            image.style.objectFit = "contain";
+            image.style.display = "block";
+            image.style.marginBottom = "15px";
+            image.style.borderRadius = "10px";
+            image.style.background = "#f8fafc";
+            image.style.cursor = "pointer";
+
+            image.onclick = function () {
+                viewImageFullscreen(image);
+            };
+
+            content.appendChild(image);
+        });
+    }
 
 
-       <div class="property-location">
-           ${safe(property.location)}, ${safe(property.city)}
-       </div>
+    /* VIDEO */
+
+    const videoHeading =
+        document.createElement("h3");
+
+    videoHeading.textContent =
+        "Property Video";
+
+    content.appendChild(videoHeading);
+
+    if (!videoId) {
+
+        const message =
+            document.createElement("p");
+
+        message.textContent =
+            "No video available.";
+
+        content.appendChild(message);
+
+    } else {
+
+        const video =
+            document.createElement("video");
+
+        video.controls = true;
+
+        video.style.width = "100%";
+        video.style.maxHeight = "500px";
+        video.style.background = "#000";
+        video.style.borderRadius = "10px";
+
+        video.src =
+            "/api/properties/media/" +
+            encodeURIComponent(videoId);
+
+        content.appendChild(video);
+    }
 
 
-       <div class="property-details">
+    modal.appendChild(content);
 
-
-           <div class="detail">
-               <strong>BHK</strong>
-               <br>
-               ${safe(property.bhk)}
-           </div>
-
-
-           <div class="detail">
-               <strong>Area</strong>
-               <br>
-               ${safe(property.areaSqft)} sqft
-           </div>
-
-
-           <div class="detail">
-               <strong>Bathrooms</strong>
-               <br>
-               ${safe(property.numberOfBathrooms)}
-           </div>
-
-
-           <div class="detail">
-               <strong>Floor</strong>
-               <br>
-               ${safe(property.floorNumber)}
-           </div>
-
-
-           <div class="detail">
-               <strong>Furnishing</strong>
-               <br>
-               ${safe(property.furnishingStatus)}
-           </div>
-
-
-           <div class="detail">
-               <strong>Status</strong>
-               <br>
-               ${safe(property.propertyStatus)}
-           </div>
-
-
-       </div>
-
-
-       <div class="rent">
-           ₹${formatNumber(property.monthlyRent)}
-           <span>/ month</span>
-       </div>
-
-
-        <div class="property-actions">
-
-
-   <button
-       type="button"
-       class="secondary-btn small-btn"
-       onclick='showEditPropertyForm(${JSON.stringify(property)})'>
-       Edit Property
-   </button>
-
-
-   <button
-       type="button"
-       class="secondary-btn small-btn"
-       onclick="showEditPropertyAmenities('${safe(property.propertyId)}')">
-       Edit Amenities
-   </button>
-
-
-    <button
-       type="button"
-       class="danger-btn small-btn"
-       onclick="deleteLandlordProperty('${safe(property.propertyId)}')">
-       Delete Property
-   </button>
-</div>
-
-
-   </div>
-   `;
+    document.body.appendChild(modal);
 }
 
+function showPropertyAmenities(button) {
 
+    const propertyCard =
+        button.closest(".property-card");
+
+    if (!propertyCard) {
+        alert("Property card not found.");
+        return;
+    }
+
+    const amenities =
+        JSON.parse(
+            propertyCard.getAttribute("data-amenities") || "[]"
+        );
+
+    const modal =
+        document.createElement("div");
+
+    modal.style.position = "fixed";
+    modal.style.top = "0";
+    modal.style.left = "0";
+    modal.style.width = "100%";
+    modal.style.height = "100%";
+    modal.style.background = "rgba(0,0,0,0.65)";
+    modal.style.zIndex = "99999";
+    modal.style.display = "flex";
+    modal.style.alignItems = "center";
+    modal.style.justifyContent = "center";
+    modal.style.padding = "30px";
+    modal.style.boxSizing = "border-box";
+
+    const content =
+        document.createElement("div");
+
+    content.style.background = "white";
+    content.style.borderRadius = "14px";
+    content.style.padding = "30px";
+    content.style.width = "90%";
+    content.style.maxWidth = "650px";
+    content.style.maxHeight = "80%";
+    content.style.overflowY = "auto";
+    content.style.position = "relative";
+
+    const closeButton =
+        document.createElement("button");
+
+    closeButton.textContent = "×";
+    closeButton.type = "button";
+
+    closeButton.style.position = "absolute";
+    closeButton.style.top = "10px";
+    closeButton.style.right = "15px";
+    closeButton.style.fontSize = "30px";
+    closeButton.style.border = "none";
+    closeButton.style.background = "none";
+    closeButton.style.cursor = "pointer";
+
+    closeButton.onclick = function () {
+        modal.remove();
+    };
+
+    const title =
+        document.createElement("h2");
+
+    title.textContent =
+        "Property Amenities";
+
+    content.appendChild(closeButton);
+    content.appendChild(title);
+
+    if (amenities.length === 0) {
+
+        const message =
+            document.createElement("p");
+
+        message.textContent =
+            "No amenities listed.";
+
+        content.appendChild(message);
+
+    } else {
+
+        const amenityContainer =
+            document.createElement("div");
+
+        amenityContainer.style.display = "flex";
+        amenityContainer.style.flexWrap = "wrap";
+        amenityContainer.style.gap = "10px";
+        amenityContainer.style.marginTop = "20px";
+
+        amenities.forEach(function (amenity) {
+
+            const tag =
+                document.createElement("span");
+
+            tag.textContent = amenity;
+
+            tag.style.display = "inline-block";
+            tag.style.padding = "8px 14px";
+            tag.style.borderRadius = "20px";
+            tag.style.background = "#f1f5f9";
+            tag.style.color = "#334155";
+            tag.style.border = "1px solid #e2e8f0";
+            tag.style.fontSize = "14px";
+
+            amenityContainer.appendChild(tag);
+        });
+
+        content.appendChild(amenityContainer);
+    }
+
+    modal.appendChild(content);
+
+    document.body.appendChild(modal);
+}
 function showEditPropertyForm(property) {
 
 
@@ -4071,7 +4545,24 @@ function showLandlordPropertySetup() {
 
 
            </div>
+          <div class="form-group">
+    <label>Property Images</label>
+    <input
+        type="file"
+        id="landlordPropertyImages"
+        accept="image/*"
+        multiple>
+    <small>Select multiple property images.</small>
+</div>
 
+<div class="form-group">
+    <label>Property Video</label>
+    <input
+        type="file"
+        id="landlordPropertyVideo"
+        accept="video/*">
+    <small>Optional property video.</small>
+</div>
 
 
 
@@ -4209,14 +4700,21 @@ async function saveInitialLandlordProperty() {
         document.getElementById(
             "landlordPropertyAvailableFrom"
         ).value;
+    const imageFiles =
+        document.getElementById(
+            "landlordPropertyImages"
+        ).files;
 
-
+    const videoFile =
+        document.getElementById(
+            "landlordPropertyVideo"
+        ).files[0];
 
 
     // Check empty fields BEFORE converting numbers
 
 
-    if (
+    /*if (
         !propertyType ||
         !location ||
         !city ||
@@ -4239,6 +4737,77 @@ async function saveInitialLandlordProperty() {
         message.classList.add("error");
 
 
+        return;
+    }*/
+    if (!propertyType) {
+        message.textContent = "Please select a property type.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (!location) {
+        message.textContent = "Please enter the property location.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (!city) {
+        message.textContent = "Please enter the city.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (!pincode) {
+        message.textContent = "Please enter the pincode.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (bhkValue === "") {
+        message.textContent = "Please enter the BHK.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (areaValue === "") {
+        message.textContent = "Please enter the area.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (bathroomsValue === "") {
+        message.textContent = "Please enter the number of bathrooms.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (rentValue === "") {
+        message.textContent = "Please enter the monthly rent.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (depositValue === "") {
+        message.textContent = "Please enter the security deposit.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (floorValue === "") {
+        message.textContent = "Please enter the floor number.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (!furnishingStatus) {
+        message.textContent = "Please select the furnishing status.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (!availableFrom) {
+        message.textContent = "Please select the available-from date.";
+        message.classList.add("error");
         return;
     }
 
@@ -4404,14 +4973,53 @@ async function saveInitialLandlordProperty() {
                 }
             );
 
+        const createdPropertyId =
+            savedProperty.propertyId;
 
 
+// Upload property images
+        if (imageFiles.length > 0) {
 
-        // Continue to amenity setup
+            const formData = new FormData();
 
+            for (const file of imageFiles) {
+                formData.append("files", file);
+            }
+
+            await apiFetch(
+                `/api/properties/${createdPropertyId}/images/multiple`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+        }
+
+
+// Upload property video
+        if (videoFile) {
+
+            const formData = new FormData();
+
+            formData.append(
+                "file",
+                videoFile
+            );
+
+            await apiFetch(
+                `/api/properties/${createdPropertyId}/video`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+        }
+
+
+// Continue to amenity setup
 
         showLandlordPropertyAmenitySetup(
-            savedProperty.propertyId
+            createdPropertyId
         );
 
 

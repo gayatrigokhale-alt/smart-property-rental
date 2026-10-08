@@ -18,6 +18,7 @@ public interface PropertyRepository
 
     // Get only properties whose status is Available
     List<Property> findByPropertyStatus(String propertyStatus);
+
 }
 
 

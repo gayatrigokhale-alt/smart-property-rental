@@ -1,5 +1,7 @@
 package com.rental.smart_property_rental.model;
 
+import java.util.List;
+import java.util.ArrayList;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -88,7 +90,11 @@ public class Property {
     @Field("Property_Status")
     @NotBlank(message = "Property status is required")
     private String propertyStatus;
+    @Field("Image_File_Ids")
+    private List<String> imageFileIds = new ArrayList<>();
 
+    @Field("Video_File_Id")
+    private String videoFileId;
 
     public Property() {
     }
@@ -220,5 +226,20 @@ public class Property {
 
     public void setPropertyStatus(String propertyStatus) {
         this.propertyStatus = propertyStatus;
+    }
+    public List<String> getImageFileIds() {
+        return imageFileIds;
+    }
+
+    public void setImageFileIds(List<String> imageFileIds) {
+        this.imageFileIds = imageFileIds;
+    }
+
+    public String getVideoFileId() {
+        return videoFileId;
+    }
+
+    public void setVideoFileId(String videoFileId) {
+        this.videoFileId = videoFileId;
     }
 }

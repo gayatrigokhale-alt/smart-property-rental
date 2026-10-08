@@ -2192,3 +2192,34 @@ X-User-Id: L001
   "availableFrom": "2026-10-15",
   "propertyStatus": "Available"
 }
+
+###
+### Upload property image
+POST http://localhost:8080/api/properties/P001/images
+X-User-Id: L001
+Content-Type: multipart/form-data; boundary=----PropertyBoundary
+
+------PropertyBoundary
+Content-Disposition: form-data; name="file"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< C:\Users\shri_\OneDrive\Pictures\Screenshots\Screenshot (18).png
+------PropertyBoundary--
+
+###
+### Upload multiple property images
+POST http://localhost:8080/api/properties/P001/images/multiple
+X-User-Id: L001
+Content-Type: multipart/form-data; boundary=----PropertyImages
+
+------PropertyImages
+Content-Disposition: form-data; name="files"; filename="image1.png"
+Content-Type: image/png
+
+< C:\Users\shri_\OneDrive\Pictures\Screenshots\Screenshot (18).png
+------PropertyImages
+Content-Disposition: form-data; name="files"; filename="image2.png"
+Content-Type: image/png
+
+< C:\Users\shri_\OneDrive\Pictures\Screenshots\Screenshot (50).png
+------PropertyImages--

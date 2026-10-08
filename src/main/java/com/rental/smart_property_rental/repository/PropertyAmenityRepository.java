@@ -9,6 +9,5 @@ public interface PropertyAmenityRepository
         extends MongoRepository<PropertyAmenity, String> {
 
     Optional<PropertyAmenity> findByPropertyId(String propertyId);
-
     boolean existsByPropertyId(String propertyId);
 }

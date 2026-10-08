@@ -359,7 +359,13 @@ public class PropertyService {
         }
 
         response.setAmenities(amenityNames);
+        response.setImageFileIds(
+                property.getImageFileIds()
+        );
 
+        response.setVideoFileId(
+                property.getVideoFileId()
+        );
         return response;
     }
 }
