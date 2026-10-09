@@ -1,0 +1,4266 @@
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\GlobalExceptionHandler.java
+==================================================
+
+package com.rental.smart_property_rental;
+
+import com.rental.smart_property_rental.exception.InvalidCredentialsException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationErrors(
+            MethodArgumentNotValidException exception) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        exception.getBindingResult()
+                .getFieldErrors()
+                .forEach(error ->
+                        errors.put(
+                                error.getField(),
+                                error.getDefaultMessage()
+                        )
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errors);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(
+            InvalidCredentialsException exception) {
+
+        Map<String, String> error = new HashMap<>();
+
+        error.put("error", exception.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(error);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\SmartPropertyRentalApplication.java
+==================================================
+
+package com.rental.smart_property_rental;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class SmartPropertyRentalApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SmartPropertyRentalApplication.class, args);
+	}
+
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\config\SecurityConfig.java
+==================================================
+
+package com.rental.smart_property_rental.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
+
+        return http.build();
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\AdminController.java
+==================================================
+
+package com.rental.smart_property_rental.controller;
+
+import com.rental.smart_property_rental.dto.AdminLoginRequest;
+import com.rental.smart_property_rental.dto.AdminLoginResponse;
+import com.rental.smart_property_rental.model.Admin;
+import com.rental.smart_property_rental.service.AdminService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/admin")
+public class AdminController {
+
+    private final AdminService adminService;
+
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AdminLoginResponse> login(
+            @RequestBody AdminLoginRequest request) {
+
+        Admin admin = adminService.login(
+                request.getEmail(),
+                request.getPassword()
+        );
+
+        AdminLoginResponse response = new AdminLoginResponse(
+                admin.getAdminId(),
+                admin.getFirstName(),
+                admin.getLastName(),
+                admin.getEmail()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\ApplicationController.java
+==================================================
+
+package com.rental.smart_property_rental.controller;
+
+import com.rental.smart_property_rental.model.Application;
+import com.rental.smart_property_rental.service.ApplicationService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/applications")
+public class ApplicationController {
+
+    private final ApplicationService applicationService;
+
+    public ApplicationController(ApplicationService applicationService) {
+        this.applicationService = applicationService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Application>> getAllApplications() {
+        return ResponseEntity.ok(
+                applicationService.getAllApplications()
+        );
+    }
+
+    @GetMapping("/{applicationId}")
+    public ResponseEntity<?> getApplicationById(
+            @PathVariable String applicationId) {
+
+        try {
+            return ResponseEntity.ok(
+                    applicationService.getApplicationById(applicationId)
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/tenant/{tenantId}")
+    public ResponseEntity<?> getApplicationsByTenant(
+            @PathVariable String tenantId,
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("User ID is required");
+        }
+
+        if (!userId.equals(tenantId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(
+                            "You are not authorized to view these applications"
+                    );
+        }
+
+        try {
+            return ResponseEntity.ok(
+                    applicationService.getApplicationsByTenant(tenantId)
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/property/{propertyId}")
+    public ResponseEntity<?> getApplicationsByProperty(
+            @PathVariable String propertyId,
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("User ID is required");
+        }
+
+        try {
+            List<Application> applications =
+                    applicationService.getApplicationsByProperty(
+                            propertyId,
+                            userId
+                    );
+
+            return ResponseEntity.ok(applications);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createApplication(
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId,
+            @RequestBody Application application) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("User ID is required");
+        }
+
+        try {
+            Application createdApplication =
+                    applicationService.createApplication(
+                            application,
+                            userId
+                    );
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(createdApplication);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{applicationId}/status")
+    public ResponseEntity<?> updateApplicationStatus(
+            @PathVariable String applicationId,
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId,
+            @RequestBody Application application) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("User ID is required");
+        }
+
+        try {
+            Application updatedApplication =
+                    applicationService.updateApplicationStatus(
+                            applicationId,
+                            application.getApplicationStatus(),
+                            userId
+                    );
+
+            return ResponseEntity.ok(updatedApplication);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{applicationId}/withdraw")
+    public ResponseEntity<?> withdrawApplication(
+            @PathVariable String applicationId,
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("User ID is required");
+        }
+
+        try {
+            Application withdrawnApplication =
+                    applicationService.withdrawApplication(
+                            applicationId,
+                            userId
+                    );
+
+            return ResponseEntity.ok(withdrawnApplication);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{applicationId}")
+    public ResponseEntity<?> deleteApplication(
+            @PathVariable String applicationId,
+            @RequestHeader(
+                    value = "X-User-Id",
+                    required = false
+            ) String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("User ID is required");
+        }
+
+        try {
+            applicationService.deleteApplication(
+                    applicationId,
+                    userId
+            );
+
+            return ResponseEntity.ok(
+                    "Application deleted successfully"
+            );
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\AuthController.java
+==================================================
+
+package com.rental.smart_property_rental.controller;
+
+import com.rental.smart_property_rental.dto.ChangePasswordRequest;
+import jakarta.validation.Valid;
+import com.rental.smart_property_rental.dto.LoginRequest;
+import com.rental.smart_property_rental.dto.RegisterRequest;
+import com.rental.smart_property_rental.model.Tenant;
+import com.rental.smart_property_rental.service.AuthService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(
+            @Valid @RequestBody RegisterRequest request) {
+
+        try {
+
+            Tenant tenant = authService.registerTenant(request);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(tenant);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequest request) {
+
+        try {
+
+            Tenant tenant = authService.loginTenant(
+                    request.getEmail(),
+                    request.getPassword()
+            );
+
+            return ResponseEntity.ok(tenant);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
+    }
+
+    // Change password
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestParam String email,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        try {
+            Tenant tenant = authService.changePassword(
+                    email,
+                    request.getCurrentPassword(),
+                    request.getNewPassword()
+            );
+
+            return ResponseEntity.ok(tenant);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().equals("Current password is incorrect")) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\LandlordController.java
+==================================================
+
+
+        package com.rental.smart_property_rental.controller;
+
+import com.rental.smart_property_rental.dto.LandlordUpdateRequest;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.rental.smart_property_rental.dto.LandlordChangePasswordRequest;
+import com.rental.smart_property_rental.dto.LandlordLoginRequest;
+import com.rental.smart_property_rental.dto.LandlordRegisterRequest;
+import com.rental.smart_property_rental.model.Landlord;
+import com.rental.smart_property_rental.service.LandlordService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/landlords")
+public class LandlordController {
+
+    private final LandlordService landlordService;
+
+    public LandlordController(LandlordService landlordService) {
+        this.landlordService = landlordService;
+    }
+
+    @GetMapping
+    public List<Landlord> getAllLandlords() {
+        return landlordService.getAllLandlords();
+    }
+
+    // Landlord registration
+    @PostMapping("/register")
+    public ResponseEntity<?> registerLandlord(
+            @Valid @RequestBody LandlordRegisterRequest request) {
+
+        try {
+
+            Landlord landlord =
+                    landlordService.registerLandlord(request);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(landlord);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    // Landlord login
+    @PostMapping("/login")
+    public ResponseEntity<?> loginLandlord(
+            @Valid @RequestBody LandlordLoginRequest request) {
+
+        try {
+
+            Landlord landlord =
+                    landlordService.loginLandlord(
+                            request.getEmail(),
+                            request.getPassword()
+                    );
+
+            return ResponseEntity.ok(landlord);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
+    }
+    //Changepassword
+// Landlord change password
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestParam String email,
+            @Valid @RequestBody LandlordChangePasswordRequest request) {
+
+        try {
+
+            Landlord landlord =
+                    landlordService.changePassword(
+                            email,
+                            request.getCurrentPassword(),
+                            request.getNewPassword()
+                    );
+
+            return ResponseEntity.ok(landlord);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().equals("Current password is incorrect")) {
+
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    //Landlord profile update
+
+// Landlord profile update
+    @PutMapping("/{landlordId}")
+    public ResponseEntity<?> updateLandlord(
+            @PathVariable String landlordId,
+            @Valid @RequestBody LandlordUpdateRequest request) {
+
+        try {
+
+            Landlord landlord =
+                    landlordService.updateLandlord(
+                            landlordId,
+                            request
+                    );
+
+            return ResponseEntity.ok(landlord);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().equals("Email already registered")) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(e.getMessage());
+            }
+
+            if (e.getMessage().equals("Landlord not found")) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+
+
+}
+
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\PropertyController.java
+==================================================
+
+package com.rental.smart_property_rental.controller;
+
+import com.rental.smart_property_rental.model.Property;
+import com.rental.smart_property_rental.service.PropertyService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/properties")
+public class PropertyController {
+
+    private final PropertyService propertyService;
+
+    public PropertyController(PropertyService propertyService) {
+        this.propertyService = propertyService;
+    }
+
+    // GET ALL PROPERTIES
+    // Public because tenants need to view available properties.
+    @GetMapping
+    public ResponseEntity<List<Property>> getAllProperties() {
+        return ResponseEntity.ok(
+                propertyService.getAllProperties()
+        );
+    }
+
+    // GET PROPERTY BY PROPERTY_ID
+    @GetMapping("/{propertyId}")
+    public ResponseEntity<?> getProperty(
+            @PathVariable String propertyId) {
+
+        return propertyService
+                .getPropertyByPropertyId(propertyId)
+                .<ResponseEntity<?>>map(
+                        ResponseEntity::ok
+                )
+                .orElseGet(() ->
+                        ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body("Property not found"));
+    }
+
+    // GET PROPERTIES OF A PARTICULAR LANDLORD
+    @GetMapping("/landlord/{landlordId}")
+    public ResponseEntity<?> getLandlordProperties(
+            @PathVariable String landlordId,
+            @RequestHeader(value = "X-User-Id", required = false)
+            String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("X-User-Id header is required");
+        }
+
+        if (!userId.equals(landlordId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("You are not authorized to view these properties");
+        }
+
+        return ResponseEntity.ok(
+                propertyService.getPropertiesByLandlord(landlordId)
+        );
+    }
+
+    // CREATE PROPERTY
+    @PostMapping
+    public ResponseEntity<?> createProperty(
+            @RequestHeader(value = "X-User-Id", required = false)
+            String userId,
+            @RequestBody Property property) {
+
+        try {
+            Property savedProperty =
+                    propertyService.createProperty(
+                            property,
+                            userId
+                    );
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(savedProperty);
+
+        } catch (RuntimeException e) {
+
+            if ("X-User-Id header is required"
+                    .equals(e.getMessage())) {
+
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(e.getMessage());
+            }
+
+            if (e.getMessage().contains("only create") ||
+                    e.getMessage().contains("already exists")) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    // UPDATE PROPERTY
+    @PutMapping("/{propertyId}")
+    public ResponseEntity<?> updateProperty(
+            @PathVariable String propertyId,
+            @RequestHeader(value = "X-User-Id", required = false)
+            String userId,
+            @RequestBody Property property) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("X-User-Id header is required");
+        }
+
+        try {
+            Property updatedProperty =
+                    propertyService.updateProperty(
+                            propertyId,
+                            property,
+                            userId
+                    );
+
+            return ResponseEntity.ok(updatedProperty);
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    // DELETE PROPERTY
+    @DeleteMapping("/{propertyId}")
+    public ResponseEntity<?> deleteProperty(
+            @PathVariable String propertyId,
+            @RequestHeader(value = "X-User-Id", required = false)
+            String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("X-User-Id header is required");
+        }
+
+        try {
+            propertyService.deleteProperty(
+                    propertyId,
+                    userId
+            );
+
+            return ResponseEntity.noContent().build();
+
+        } catch (RuntimeException e) {
+
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\TenantAmenityPreferenceController.java
+==================================================
+
+package com.rental.smart_property_rental.controller;
+
+import com.rental.smart_property_rental.model.TenantAmenityPreference;
+import com.rental.smart_property_rental.service.TenantAmenityPreferenceService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/tenant-amenity-preferences")
+public class TenantAmenityPreferenceController {
+
+    private final TenantAmenityPreferenceService
+            tenantAmenityPreferenceService;
+
+    public TenantAmenityPreferenceController(
+            TenantAmenityPreferenceService tenantAmenityPreferenceService) {
+
+        this.tenantAmenityPreferenceService =
+                tenantAmenityPreferenceService;
+    }
+
+    // GET
+    @GetMapping("/{tenantId}")
+    public ResponseEntity<?> getPreferences(
+            @PathVariable String tenantId) {
+
+        Optional<TenantAmenityPreference> preference =
+                tenantAmenityPreferenceService
+                        .getPreferencesByTenantId(tenantId);
+
+        if (preference.isPresent()) {
+            return ResponseEntity.ok(preference.get());
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(
+                        "Amenity preferences not found for tenant: "
+                                + tenantId
+                );
+    }
+
+    // CREATE
+    @PostMapping
+    public ResponseEntity<?> createPreferences(
+            @RequestBody TenantAmenityPreference preference) {
+
+        try {
+
+            TenantAmenityPreference savedPreference =
+                    tenantAmenityPreferenceService
+                            .createPreferences(preference);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(savedPreference);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePreferences(
+            @PathVariable String id,
+            @RequestBody TenantAmenityPreference preference) {
+
+        try {
+
+            TenantAmenityPreference updatedPreference =
+                    tenantAmenityPreferenceService
+                            .updatePreferences(
+                                    id,
+                                    preference
+                            );
+
+            return ResponseEntity.ok(updatedPreference);
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePreferences(
+            @PathVariable String id) {
+
+        try {
+
+            tenantAmenityPreferenceService
+                    .deletePreferences(id);
+
+            return ResponseEntity
+                    .noContent()
+                    .build();
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\TenantController.java
+==================================================
+
+package com.rental.smart_property_rental.controller;
+
+import jakarta.validation.Valid;
+
+import com.rental.smart_property_rental.dto.LoginRequest;
+import com.rental.smart_property_rental.dto.TenantLoginResponse;
+import com.rental.smart_property_rental.dto.UpdateTenantRequest;
+import com.rental.smart_property_rental.model.Tenant;
+import com.rental.smart_property_rental.service.TenantService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/tenants")
+public class TenantController {
+
+    private final TenantService tenantService;
+
+    public TenantController(TenantService tenantService) {
+        this.tenantService = tenantService;
+    }
+
+    // =========================================================
+    // TENANT LOGIN
+    // =========================================================
+
+    @PostMapping("/login")
+    public ResponseEntity<TenantLoginResponse> login(
+            @RequestBody LoginRequest request) {
+
+        Tenant tenant = tenantService.login(
+                request.getEmail(),
+                request.getPassword()
+        );
+
+        TenantLoginResponse response = new TenantLoginResponse(
+                tenant.getTenantId(),
+                tenant.getFirstName(),
+                tenant.getLastName(),
+                tenant.getEmail()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // =========================================================
+    // GET ALL TENANTS
+    // =========================================================
+
+    @GetMapping
+    public List<Tenant> getAllTenants() {
+        return tenantService.getAllTenants();
+    }
+
+    // =========================================================
+    // GET TENANT BY ID
+    // =========================================================
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Tenant> getTenantById(
+            @PathVariable String id) {
+
+        return tenantService.getTenantById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // =========================================================
+    // GET TENANT PROFILE BY EMAIL
+    // =========================================================
+
+    @GetMapping("/profile/{email}")
+    public ResponseEntity<?> getProfile(
+            @PathVariable String email) {
+
+        try {
+
+            Tenant tenant = tenantService.getTenantByEmail(email);
+
+            return ResponseEntity.ok(tenant);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    // =========================================================
+    // UPDATE TENANT PROFILE
+    // =========================================================
+
+    @PutMapping("/profile/{email}")
+    public ResponseEntity<?> updateProfile(
+            @PathVariable String email,
+            @Valid @RequestBody UpdateTenantRequest updatedTenant) {
+
+        try {
+
+            Tenant tenant = tenantService.updateTenantProfile(
+                    email,
+                    updatedTenant
+            );
+
+            return ResponseEntity.ok(tenant);
+
+        } catch (RuntimeException e) {
+
+            if ("Email already registered".equals(e.getMessage())) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(e.getMessage());
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    // =========================================================
+    // CREATE TENANT
+    // =========================================================
+
+    @PostMapping
+    public Tenant createTenant(
+            @RequestBody Tenant tenant) {
+
+        return tenantService.saveTenant(tenant);
+    }
+
+    // =========================================================
+    // UPDATE TENANT BY ID
+    // =========================================================
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Tenant> updateTenant(
+            @PathVariable String id,
+            @RequestBody Tenant tenant) {
+
+        return tenantService.getTenantById(id)
+                .map(existingTenant -> {
+
+                    tenant.setId(id);
+
+                    return ResponseEntity.ok(
+                            tenantService.saveTenant(tenant)
+                    );
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // =========================================================
+    // DELETE TENANT
+    // =========================================================
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTenant(
+            @PathVariable String id) {
+
+        if (tenantService.getTenantById(id).isPresent()) {
+
+            tenantService.deleteTenant(id);
+
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\controller\TenantPreferenceController.java
+==================================================
+
+package com.rental.smart_property_rental.controller;
+
+import java.util.Optional;
+
+import com.rental.smart_property_rental.model.TenantPreference;
+import com.rental.smart_property_rental.service.TenantPreferenceService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/tenant-preferences")
+public class TenantPreferenceController {
+
+    private final TenantPreferenceService tenantPreferenceService;
+
+    public TenantPreferenceController(
+            TenantPreferenceService tenantPreferenceService) {
+        this.tenantPreferenceService = tenantPreferenceService;
+    }
+
+    // GET
+    @GetMapping("/{tenantId}")
+    public ResponseEntity<?> getPreferences(
+            @PathVariable String tenantId) {
+
+        Optional<TenantPreference> preference =
+                tenantPreferenceService.getPreferencesByTenantId(tenantId);
+
+        if (preference.isPresent()) {
+            return ResponseEntity.ok(preference.get());
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body("Preferences not found for tenant: " + tenantId);
+    }
+
+    // CREATE
+    @PostMapping
+    public ResponseEntity<?> createPreferences(
+            @RequestBody TenantPreference preference) {
+
+        try {
+
+            TenantPreference savedPreference =
+                    tenantPreferenceService.createPreferences(
+                            preference
+                    );
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(savedPreference);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePreferences(
+            @PathVariable String id,
+            @RequestBody TenantPreference preference) {
+
+        try {
+
+            TenantPreference updatedPreference =
+                    tenantPreferenceService.updatePreferences(
+                            id,
+                            preference
+                    );
+
+            return ResponseEntity.ok(updatedPreference);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePreferences(
+            @PathVariable String id) {
+
+        try {
+
+            tenantPreferenceService.deletePreferences(id);
+
+            return ResponseEntity
+                    .noContent()
+                    .build();
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\AdminLoginRequest.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+public class AdminLoginRequest {
+
+    private String email;
+    private String password;
+
+    public AdminLoginRequest() {
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\AdminLoginResponse.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+public class AdminLoginResponse {
+
+    private String adminId;
+    private String firstName;
+    private String lastName;
+    private String email;
+
+    public AdminLoginResponse() {
+    }
+
+    public AdminLoginResponse(String adminId, String firstName,
+                              String lastName, String email) {
+        this.adminId = adminId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
+    public String getAdminId() {
+        return adminId;
+    }
+
+    public void setAdminId(String adminId) {
+        this.adminId = adminId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\ChangePasswordRequest.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public class ChangePasswordRequest {
+
+    @NotBlank(message = "Current password is required")
+    private String currentPassword;
+
+    @NotBlank(message = "New password is required")
+    @Size(min = 6, message = "New password must be at least 6 characters")
+    private String newPassword;
+
+    public String getCurrentPassword() {
+        return currentPassword;
+    }
+
+    public void setCurrentPassword(String currentPassword) {
+        this.currentPassword = currentPassword;
+    }
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\LandlordChangePasswordRequest.java
+==================================================
+
+
+        package com.rental.smart_property_rental.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public class LandlordChangePasswordRequest {
+
+    @NotBlank(message = "Current password is required")
+    private String currentPassword;
+
+    @NotBlank(message = "New password is required")
+    @Size(min = 6, message = "New password must be at least 6 characters")
+    private String newPassword;
+
+    public String getCurrentPassword() {
+        return currentPassword;
+    }
+
+    public void setCurrentPassword(String currentPassword) {
+        this.currentPassword = currentPassword;
+    }
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\LandlordLoginRequest.java
+==================================================
+
+
+        package com.rental.smart_property_rental.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public class LandlordLoginRequest {
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\LandlordRegisterRequest.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public class LandlordRegisterRequest {
+
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
+    private String email;
+
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+            regexp = "^(\\+91[- ]?)?[6-9]\\d{9}$",
+            message = "Enter a valid Indian phone number"
+    )
+    private String phone;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
+    private String password;
+
+    // Getters and setters
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\LandlordUpdateRequest.java
+==================================================
+
+
+        package com.rental.smart_property_rental.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+
+public class LandlordUpdateRequest {
+
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
+    private String email;
+
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+            regexp = "^(\\+91[- ]?)?[6-9]\\d{9}$",
+            message = "Enter a valid Indian phone number"
+    )
+    private String phone;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+}
+
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\LoginRequest.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+public class LoginRequest {
+
+    private String email;
+    private String password;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\RegisterRequest.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public class RegisterRequest {
+
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
+    private String email;
+
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+            regexp = "^(\\+91[- ]?)?[6-9]\\d{9}$",
+            message = "Enter a valid Indian phone number"
+    )
+    private String phone;
+
+    @NotBlank(message = "Gender is required")
+    @Pattern(
+            regexp = "^(Male|Female|Other)$",
+            message = "Gender must be Male, Female, or Other"
+    )
+    private String gender;
+
+    @NotBlank(message = "Occupation is required")
+    private String occupation;
+
+    @NotNull(message = "Age is required")
+    @Min(value = 18, message = "Age must be at least 18")
+    @Max(value = 100, message = "Age must not exceed 100")
+    private Integer age;
+
+    @NotBlank(message = "Tenant type is required")
+    @Pattern(
+            regexp = "^(Student|Working Professional|Family)$",
+            message = "Tenant type must be Student, Working Professional, or Family"
+    )
+    private String tenantType;
+
+    @NotNull(message = "Please specify whether you have pets")
+    private Boolean hasPets;
+
+    @NotBlank(message = "Password is required")
+    @Size(
+            min = 6,
+            message = "Password must be at least 6 characters"
+    )
+    private String password;
+
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getOccupation() {
+        return occupation;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getTenantType() {
+        return tenantType;
+    }
+
+    public void setTenantType(String tenantType) {
+        this.tenantType = tenantType;
+    }
+
+    public Boolean getHasPets() {
+        return hasPets;
+    }
+
+    public void setHasPets(Boolean hasPets) {
+        this.hasPets = hasPets;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\TenantLoginResponse.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+public class TenantLoginResponse {
+
+    private String tenantId;
+    private String firstName;
+    private String lastName;
+    private String email;
+
+    public TenantLoginResponse() {
+    }
+
+    public TenantLoginResponse(String tenantId,
+                               String firstName,
+                               String lastName,
+                               String email) {
+        this.tenantId = tenantId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\dto\UpdateTenantRequest.java
+==================================================
+
+package com.rental.smart_property_rental.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
+public class UpdateTenantRequest {
+
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
+    private String email;
+
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+            regexp = "^(\\+91[- ]?)?[6-9]\\d{9}$",
+            message = "Enter a valid Indian phone number"
+    )
+    private String phone;
+
+    @NotBlank(message = "Gender is required")
+    @Pattern(
+            regexp = "^(Male|Female|Other)$",
+            message = "Gender must be Male, Female, or Other"
+    )
+    private String gender;
+
+    @NotBlank(message = "Occupation is required")
+    private String occupation;
+
+    @NotNull(message = "Age is required")
+    @Min(value = 18, message = "Age must be at least 18")
+    @Max(value = 100, message = "Age must not exceed 100")
+    private Integer age;
+
+    @NotBlank(message = "Tenant type is required")
+    @Pattern(
+            regexp = "^(Student|Working Professional|Family)$",
+            message = "Tenant type must be Student, Working Professional, or Family"
+    )
+    private String tenantType;
+
+    @NotNull(message = "Please specify whether you have pets")
+    private Boolean hasPets;
+
+
+    // Getters and setters
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getOccupation() {
+        return occupation;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getTenantType() {
+        return tenantType;
+    }
+
+    public void setTenantType(String tenantType) {
+        this.tenantType = tenantType;
+    }
+
+    public Boolean getHasPets() {
+        return hasPets;
+    }
+
+    public void setHasPets(Boolean hasPets) {
+        this.hasPets = hasPets;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\exception\InvalidCredentialsException.java
+==================================================
+
+package com.rental.smart_property_rental.exception;
+
+public class InvalidCredentialsException extends RuntimeException {
+
+    public InvalidCredentialsException(String message) {
+        super(message);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\Admin.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "ADMIN")
+public class Admin {
+
+    @Id
+    private String id;
+
+    @Field("Admin_ID")
+    private String adminId;
+
+    @Field("First_Name")
+    private String firstName;
+
+    @Field("Last_Name")
+    private String lastName;
+
+    @Field("Email")
+    private String email;
+
+    @Field("Phone")
+    private String phone;
+
+    @Field("Password_Hash")
+    private String passwordHash;
+
+    public Admin() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getAdminId() {
+        return adminId;
+    }
+
+    public void setAdminId(String adminId) {
+        this.adminId = adminId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\Amenity.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "AMENITY")
+public class Amenity {
+
+    @Id
+    private String id;
+
+    @Field("Amenity_ID")
+    private String amenityId;
+
+    @Field("Amenity_Name")
+    private String amenityName;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getAmenityId() {
+        return amenityId;
+    }
+
+    public void setAmenityId(String amenityId) {
+        this.amenityId = amenityId;
+    }
+
+    public String getAmenityName() {
+        return amenityName;
+    }
+
+    public void setAmenityName(String amenityName) {
+        this.amenityName = amenityName;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\Application.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "APPLICATION")
+public class Application {
+
+    @Id
+    private String id;
+
+    @Field("Application_ID")
+    private String applicationId;
+
+    @Field("Tenant_ID")
+    private String tenantId;
+
+    @Field("Property_ID")
+    private String propertyId;
+
+    @Field("Application_Date")
+    private String applicationDate;
+
+    @Field("Proposed_Move_In_Date")
+    private String proposedMoveInDate;
+
+    @Field("Number_of_Occupants")
+    private Integer numberOfOccupants;
+
+    @Field("Application_Status")
+    private String applicationStatus;
+
+    public Application() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getPropertyId() {
+        return propertyId;
+    }
+
+    public void setPropertyId(String propertyId) {
+        this.propertyId = propertyId;
+    }
+
+    public String getApplicationDate() {
+        return applicationDate;
+    }
+
+    public void setApplicationDate(String applicationDate) {
+        this.applicationDate = applicationDate;
+    }
+
+    public String getProposedMoveInDate() {
+        return proposedMoveInDate;
+    }
+
+    public void setProposedMoveInDate(String proposedMoveInDate) {
+        this.proposedMoveInDate = proposedMoveInDate;
+    }
+
+    public Integer getNumberOfOccupants() {
+        return numberOfOccupants;
+    }
+
+    public void setNumberOfOccupants(Integer numberOfOccupants) {
+        this.numberOfOccupants = numberOfOccupants;
+    }
+
+    public String getApplicationStatus() {
+        return applicationStatus;
+    }
+
+    public void setApplicationStatus(String applicationStatus) {
+        this.applicationStatus = applicationStatus;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\Landlord.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "LANDLORD")
+public class Landlord {
+
+    @JsonIgnore
+    @Id
+    private String id;
+
+    @Field("Landlord_ID")
+    private String landlordId;
+
+    @Field("First_Name")
+    private String firstName;
+
+    @Field("Last_Name")
+    private String lastName;
+
+    @Field("Email")
+    private String email;
+
+    @Field("Phone")
+    private String phone;
+
+    @Field("Verification_Status")
+    private String verificationStatus;
+
+    @JsonIgnore
+    @Field("Password_Hash")
+    private String passwordHash;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getLandlordId() {
+        return landlordId;
+    }
+
+    public void setLandlordId(String landlordId) {
+        this.landlordId = landlordId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getVerificationStatus() {
+        return verificationStatus;
+    }
+
+    public void setVerificationStatus(String verificationStatus) {
+        this.verificationStatus = verificationStatus;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\Property.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "PROPERTY")
+public class Property {
+
+    @Id
+    private String id;
+
+    @Field("Property_ID")
+    private String propertyId;
+
+    @Field("Landlord_ID")
+    private String landlordId;
+
+    @Field("Property_Type")
+    private String propertyType;
+
+    @Field("Location")
+    private String location;
+
+    @Field("City")
+    private String city;
+
+    @Field("Pincode")
+    private String pincode;
+
+    @Field("BHK")
+    private Integer bhk;
+
+    @Field("Area_sqft")
+    private Integer areaSqft;
+
+    @Field("Number_of_Bathrooms")
+    private Integer numberOfBathrooms;
+
+    @Field("Monthly_Rent")
+    private Integer monthlyRent;
+
+    @Field("Security_Deposit")
+    private Integer securityDeposit;
+
+    @Field("Floor_Number")
+    private Integer floorNumber;
+
+    @Field("Furnishing_Status")
+    private String furnishingStatus;
+
+    @Field("Available_From")
+    private String availableFrom;
+
+    @Field("Property_Status")
+    private String propertyStatus;
+
+    public Property() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getPropertyId() {
+        return propertyId;
+    }
+
+    public void setPropertyId(String propertyId) {
+        this.propertyId = propertyId;
+    }
+
+    public String getLandlordId() {
+        return landlordId;
+    }
+
+    public void setLandlordId(String landlordId) {
+        this.landlordId = landlordId;
+    }
+
+    public String getPropertyType() {
+        return propertyType;
+    }
+
+    public void setPropertyType(String propertyType) {
+        this.propertyType = propertyType;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
+    }
+
+    public Integer getBhk() {
+        return bhk;
+    }
+
+    public void setBhk(Integer bhk) {
+        this.bhk = bhk;
+    }
+
+    public Integer getAreaSqft() {
+        return areaSqft;
+    }
+
+    public void setAreaSqft(Integer areaSqft) {
+        this.areaSqft = areaSqft;
+    }
+
+    public Integer getNumberOfBathrooms() {
+        return numberOfBathrooms;
+    }
+
+    public void setNumberOfBathrooms(Integer numberOfBathrooms) {
+        this.numberOfBathrooms = numberOfBathrooms;
+    }
+
+    public Integer getMonthlyRent() {
+        return monthlyRent;
+    }
+
+    public void setMonthlyRent(Integer monthlyRent) {
+        this.monthlyRent = monthlyRent;
+    }
+
+    public Integer getSecurityDeposit() {
+        return securityDeposit;
+    }
+
+    public void setSecurityDeposit(Integer securityDeposit) {
+        this.securityDeposit = securityDeposit;
+    }
+
+    public Integer getFloorNumber() {
+        return floorNumber;
+    }
+
+    public void setFloorNumber(Integer floorNumber) {
+        this.floorNumber = floorNumber;
+    }
+
+    public String getFurnishingStatus() {
+        return furnishingStatus;
+    }
+
+    public void setFurnishingStatus(String furnishingStatus) {
+        this.furnishingStatus = furnishingStatus;
+    }
+
+    public String getAvailableFrom() {
+        return availableFrom;
+    }
+
+    public void setAvailableFrom(String availableFrom) {
+        this.availableFrom = availableFrom;
+    }
+
+    public String getPropertyStatus() {
+        return propertyStatus;
+    }
+
+    public void setPropertyStatus(String propertyStatus) {
+        this.propertyStatus = propertyStatus;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\Tenant.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "TENANT")
+public class Tenant {
+
+    @Id
+    private String id;
+
+    @Field("Tenant_ID")
+    private String tenantId;
+
+    @Field("First_Name")
+    private String firstName;
+
+    @Field("Last_Name")
+    private String lastName;
+
+    @Field("Email")
+    private String email;
+
+    @Field("Phone")
+    private String phone;
+
+    @Field("Gender")
+    private String gender;
+
+    @Field("Occupation")
+    private String occupation;
+
+    @Field("Age")
+    private Integer age;
+
+    @Field("Tenant_Type")
+    private String tenantType;
+
+    @Field("Has_Pets")
+    private Boolean hasPets;
+
+    @JsonIgnore
+    @Field("Password_Hash")
+    private String passwordHash;
+
+
+    // Getters and Setters
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getOccupation() {
+        return occupation;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getTenantType() {
+        return tenantType;
+    }
+
+    public void setTenantType(String tenantType) {
+        this.tenantType = tenantType;
+    }
+
+    public Boolean getHasPets() {
+        return hasPets;
+    }
+
+    public void setHasPets(Boolean hasPets) {
+        this.hasPets = hasPets;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\TenantAmenityPreference.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.util.List;
+
+@Document(collection = "TENANT_AMENITY_PREFERENCE")
+public class TenantAmenityPreference {
+
+    @Id
+    private String id;
+
+    @Field("Tenant_ID")
+    private String tenantId;
+
+    @Field("Amenity_IDs")
+    private List<String> amenityIds;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public List<String> getAmenityIds() {
+        return amenityIds;
+    }
+
+    public void setAmenityIds(List<String> amenityIds) {
+        this.amenityIds = amenityIds;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\model\TenantPreference.java
+==================================================
+
+package com.rental.smart_property_rental.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "TENANT_PREFERENCE")
+public class TenantPreference {
+
+    @Id
+    private String id;
+
+    @Field("Preference_ID")
+    private String preferenceId;
+
+    @Field("Tenant_ID")
+    private String tenantId;
+
+    @Field("Preferred_Location")
+    private String preferredLocation;
+
+    @Field("Minimum_Budget")
+    private Integer minimumBudget;
+
+    @Field("Maximum_Budget")
+    private Integer maximumBudget;
+
+    @Field("Preferred_Property_Type")
+    private String preferredPropertyType;
+
+    @Field("Preferred_BHK")
+    private Integer preferredBhk;
+
+    @Field("Minimum_Area_sqft")
+    private Integer minimumAreaSqft;
+
+    @Field("Minimum_Bathrooms")
+    private Integer minimumBathrooms;
+
+    @Field("Number_of_Occupants")
+    private Integer numberOfOccupants;
+
+    @Field("Furnishing_Preference")
+    private String furnishingPreference;
+
+    @Field("Preferred_Floor")
+    private String preferredFloor;
+
+    @Field("Minimum_Lease_Duration")
+    private Integer minimumLeaseDuration;
+
+    @Field("Preferred_Move_In_Date")
+    private String preferredMoveInDate;
+
+    // Getters and Setters
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getPreferenceId() {
+        return preferenceId;
+    }
+
+    public void setPreferenceId(String preferenceId) {
+        this.preferenceId = preferenceId;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getPreferredLocation() {
+        return preferredLocation;
+    }
+
+    public void setPreferredLocation(String preferredLocation) {
+        this.preferredLocation = preferredLocation;
+    }
+
+    public Integer getMinimumBudget() {
+        return minimumBudget;
+    }
+
+    public void setMinimumBudget(Integer minimumBudget) {
+        this.minimumBudget = minimumBudget;
+    }
+
+    public Integer getMaximumBudget() {
+        return maximumBudget;
+    }
+
+    public void setMaximumBudget(Integer maximumBudget) {
+        this.maximumBudget = maximumBudget;
+    }
+
+    public String getPreferredPropertyType() {
+        return preferredPropertyType;
+    }
+
+    public void setPreferredPropertyType(String preferredPropertyType) {
+        this.preferredPropertyType = preferredPropertyType;
+    }
+
+    public Integer getPreferredBhk() {
+        return preferredBhk;
+    }
+
+    public void setPreferredBhk(Integer preferredBhk) {
+        this.preferredBhk = preferredBhk;
+    }
+
+    public Integer getMinimumAreaSqft() {
+        return minimumAreaSqft;
+    }
+
+    public void setMinimumAreaSqft(Integer minimumAreaSqft) {
+        this.minimumAreaSqft = minimumAreaSqft;
+    }
+
+    public Integer getMinimumBathrooms() {
+        return minimumBathrooms;
+    }
+
+    public void setMinimumBathrooms(Integer minimumBathrooms) {
+        this.minimumBathrooms = minimumBathrooms;
+    }
+
+    public Integer getNumberOfOccupants() {
+        return numberOfOccupants;
+    }
+
+    public void setNumberOfOccupants(Integer numberOfOccupants) {
+        this.numberOfOccupants = numberOfOccupants;
+    }
+
+    public String getFurnishingPreference() {
+        return furnishingPreference;
+    }
+
+    public void setFurnishingPreference(String furnishingPreference) {
+        this.furnishingPreference = furnishingPreference;
+    }
+
+    public String getPreferredFloor() {
+        return preferredFloor;
+    }
+
+    public void setPreferredFloor(String preferredFloor) {
+        this.preferredFloor = preferredFloor;
+    }
+
+    public Integer getMinimumLeaseDuration() {
+        return minimumLeaseDuration;
+    }
+
+    public void setMinimumLeaseDuration(Integer minimumLeaseDuration) {
+        this.minimumLeaseDuration = minimumLeaseDuration;
+    }
+
+    public String getPreferredMoveInDate() {
+        return preferredMoveInDate;
+    }
+
+    public void setPreferredMoveInDate(String preferredMoveInDate) {
+        this.preferredMoveInDate = preferredMoveInDate;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\AdminRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.Admin;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.Optional;
+
+public interface AdminRepository extends MongoRepository<Admin, String> {
+
+    Optional<Admin> findByAdminId(String adminId);
+
+    Optional<Admin> findByEmail(String email);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\AmenityRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.Amenity;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface AmenityRepository
+        extends MongoRepository<Amenity, String> {
+
+    Optional<Amenity> findByAmenityId(String amenityId);
+
+    List<Amenity> findByAmenityIdIn(List<String> amenityIds);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\ApplicationRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.Application;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ApplicationRepository
+        extends MongoRepository<Application, String> {
+
+    Optional<Application> findByApplicationId(String applicationId);
+
+    boolean existsByApplicationId(String applicationId);
+
+    List<Application> findByTenantId(String tenantId);
+
+    List<Application> findByPropertyId(String propertyId);
+
+    boolean existsByTenantIdAndPropertyId(String tenantId, String propertyId);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\LandlordRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.Landlord;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.Optional;
+
+public interface LandlordRepository extends MongoRepository<Landlord, String> {
+
+    Optional<Landlord> findByEmail(String email);
+
+    Optional<Landlord> findByLandlordId(String landlordId);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\PropertyRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.Property;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface PropertyRepository
+        extends MongoRepository<Property, String> {
+
+    Optional<Property> findByPropertyId(String propertyId);
+
+    boolean existsByPropertyId(String propertyId);
+
+    List<Property> findByLandlordId(String landlordId);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\TenantAmenityPreferenceRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.TenantAmenityPreference;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.Optional;
+
+public interface TenantAmenityPreferenceRepository
+        extends MongoRepository<TenantAmenityPreference, String> {
+
+    Optional<TenantAmenityPreference> findByTenantId(String tenantId);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\TenantPreferenceRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.TenantPreference;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.Optional;
+
+public interface TenantPreferenceRepository
+        extends MongoRepository<TenantPreference, String> {
+
+    Optional<TenantPreference> findByTenantId(String tenantId);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\repository\TenantRepository.java
+==================================================
+
+package com.rental.smart_property_rental.repository;
+
+import com.rental.smart_property_rental.model.Tenant;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.Optional;
+
+public interface TenantRepository extends MongoRepository<Tenant, String> {
+
+    Optional<Tenant> findByEmail(String email);
+
+    Optional<Tenant> findByTenantId(String tenantId);
+
+    boolean existsByTenantId(String tenantId);
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\AdminService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import com.rental.smart_property_rental.exception.InvalidCredentialsException;
+import com.rental.smart_property_rental.model.Admin;
+import com.rental.smart_property_rental.repository.AdminRepository;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AdminService {
+
+    private final AdminRepository adminRepository;
+    private final PasswordService passwordService;
+
+    public AdminService(AdminRepository adminRepository,
+                        PasswordService passwordService) {
+        this.adminRepository = adminRepository;
+        this.passwordService = passwordService;
+    }
+
+    public Admin login(String email, String password) {
+
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+
+        boolean passwordCorrect = passwordService.verifyPassword(
+                password,
+                admin.getPasswordHash()
+        );
+
+        if (!passwordCorrect) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+
+        return admin;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\ApplicationService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import com.rental.smart_property_rental.model.Application;
+import com.rental.smart_property_rental.model.Property;
+import com.rental.smart_property_rental.repository.ApplicationRepository;
+import com.rental.smart_property_rental.repository.PropertyRepository;
+import com.rental.smart_property_rental.repository.TenantRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Service
+public class ApplicationService {
+
+    private final ApplicationRepository applicationRepository;
+    private final TenantRepository tenantRepository;
+    private final PropertyRepository propertyRepository;
+
+    public ApplicationService(
+            ApplicationRepository applicationRepository,
+            TenantRepository tenantRepository,
+            PropertyRepository propertyRepository) {
+
+        this.applicationRepository = applicationRepository;
+        this.tenantRepository = tenantRepository;
+        this.propertyRepository = propertyRepository;
+    }
+
+    public List<Application> getAllApplications() {
+        return applicationRepository.findAll();
+    }
+
+    public Application getApplicationById(String applicationId) {
+        return applicationRepository.findByApplicationId(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
+    }
+
+    public List<Application> getApplicationsByTenant(String tenantId) {
+
+        if (!tenantRepository.existsByTenantId(tenantId)) {
+            throw new RuntimeException("Tenant not found");
+        }
+
+        return applicationRepository.findByTenantId(tenantId);
+    }
+
+    public List<Application> getApplicationsByProperty(
+            String propertyId,
+            String userId) {
+
+        Property property =
+                propertyRepository.findByPropertyId(propertyId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Property not found"));
+
+        if (!property.getLandlordId().equals(userId)) {
+            throw new RuntimeException(
+                    "You are not authorized to view applications for this property"
+            );
+        }
+
+        return applicationRepository.findByPropertyId(propertyId);
+    }
+
+    public Application createApplication(
+            Application application,
+            String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            throw new RuntimeException("User ID is required");
+        }
+
+        if (!userId.equals(application.getTenantId())) {
+            throw new RuntimeException(
+                    "You can only create an application for your own tenant account"
+            );
+        }
+
+        if (!tenantRepository.existsByTenantId(application.getTenantId())) {
+            throw new RuntimeException("Tenant not found");
+        }
+
+        if (!propertyRepository.existsByPropertyId(application.getPropertyId())) {
+            throw new RuntimeException("Property not found");
+        }
+
+        if (applicationRepository.existsByTenantIdAndPropertyId(
+                application.getTenantId(),
+                application.getPropertyId())) {
+
+            throw new RuntimeException(
+                    "You have already applied for this property"
+            );
+        }
+
+        String applicationId = generateApplicationId();
+
+        application.setApplicationId(applicationId);
+
+        application.setApplicationDate(
+                LocalDate.now().toString()
+        );
+
+        // Every newly created application starts as Pending.
+        application.setApplicationStatus("Pending");
+
+        return applicationRepository.save(application);
+    }
+
+    public Application updateApplicationStatus(
+            String applicationId,
+            String status,
+            String userId) {
+
+        Application existingApplication =
+                applicationRepository.findByApplicationId(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Application not found"));
+
+        Property property =
+                propertyRepository.findByPropertyId(
+                        existingApplication.getPropertyId()
+                ).orElseThrow(() ->
+                        new RuntimeException("Property not found"));
+
+        // Only the landlord who owns the property
+        // can approve or reject an application.
+        if (!property.getLandlordId().equals(userId)) {
+            throw new RuntimeException(
+                    "You are not authorized to update this application"
+            );
+        }
+
+        if (!status.equals("Pending")
+                && !status.equals("Approved")
+                && !status.equals("Rejected")
+                && !status.equals("Withdrawn")) {
+
+            throw new RuntimeException(
+                    "Invalid application status"
+            );
+        }
+
+        existingApplication.setApplicationStatus(status);
+
+        return applicationRepository.save(existingApplication);
+    }
+
+    public Application withdrawApplication(
+            String applicationId,
+            String userId) {
+
+        Application existingApplication =
+                applicationRepository.findByApplicationId(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Application not found"));
+
+        // Only the tenant who created the application
+        // can withdraw it.
+        if (!existingApplication.getTenantId().equals(userId)) {
+            throw new RuntimeException(
+                    "You are not authorized to withdraw this application"
+            );
+        }
+
+        existingApplication.setApplicationStatus("Withdrawn");
+
+        return applicationRepository.save(existingApplication);
+    }
+
+    public void deleteApplication(
+            String applicationId,
+            String userId) {
+
+        Application existingApplication =
+                applicationRepository.findByApplicationId(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Application not found"));
+
+        // Tenant can delete their own application.
+        if (existingApplication.getTenantId().equals(userId)) {
+            applicationRepository.delete(existingApplication);
+            return;
+        }
+
+        Property property =
+                propertyRepository.findByPropertyId(
+                        existingApplication.getPropertyId()
+                ).orElseThrow(() ->
+                        new RuntimeException("Property not found"));
+
+        if (property.getLandlordId().equals(userId)) {
+            applicationRepository.delete(existingApplication);
+            return;
+        }
+
+        throw new RuntimeException(
+                "You are not authorized to delete this application"
+        );
+    }
+
+    private String generateApplicationId() {
+
+        long count = applicationRepository.count() + 1;
+
+        String applicationId =
+                String.format("APP%03d", count);
+
+        while (applicationRepository.existsByApplicationId(applicationId)) {
+            count++;
+            applicationId =
+                    String.format("APP%03d", count);
+        }
+
+        return applicationId;
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\AuthService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import com.rental.smart_property_rental.dto.RegisterRequest;
+import com.rental.smart_property_rental.model.Tenant;
+import com.rental.smart_property_rental.repository.TenantRepository;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AuthService {
+
+    private final TenantRepository tenantRepository;
+    private final PasswordService passwordService;
+
+    public AuthService(TenantRepository tenantRepository,
+                       PasswordService passwordService) {
+        this.tenantRepository = tenantRepository;
+        this.passwordService = passwordService;
+    }
+
+    public Tenant registerTenant(RegisterRequest request) {
+
+        // Check whether email already exists
+        if (tenantRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        // Create new Tenant
+        Tenant tenant = new Tenant();
+
+        tenant.setFirstName(request.getFirstName());
+        tenant.setLastName(request.getLastName());
+        tenant.setEmail(request.getEmail());
+        tenant.setPhone(request.getPhone());
+        tenant.setGender(request.getGender());
+        tenant.setOccupation(request.getOccupation());
+        tenant.setAge(request.getAge());
+        tenant.setTenantType(request.getTenantType());
+        tenant.setHasPets(request.getHasPets());
+
+        // Hash the password
+        String hashedPassword =
+                passwordService.hashPassword(request.getPassword());
+
+        tenant.setPasswordHash(hashedPassword);
+
+        // Generate a unique Tenant ID
+        int nextNumber = (int) tenantRepository.count() + 1;
+        String tenantId = "T" + String.format("%03d", nextNumber);
+
+        while (tenantRepository.findByTenantId(tenantId).isPresent()) {
+            nextNumber++;
+            tenantId = "T" + String.format("%03d", nextNumber);
+        }
+
+        tenant.setTenantId(tenantId);
+
+        // Save tenant
+        return tenantRepository.save(tenant);
+    }
+
+    public Tenant loginTenant(String email, String password) {
+
+        Tenant tenant = tenantRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid email or password"));
+
+        boolean passwordCorrect =
+                passwordService.verifyPassword(
+                        password,
+                        tenant.getPasswordHash()
+                );
+
+        if (!passwordCorrect) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return tenant;
+    }
+
+    //Change password
+    public Tenant changePassword(
+            String email,
+            String currentPassword,
+            String newPassword) {
+
+        Tenant tenant = tenantRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant not found"));
+
+        boolean passwordCorrect =
+                passwordService.verifyPassword(
+                        currentPassword,
+                        tenant.getPasswordHash()
+                );
+
+        if (!passwordCorrect) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        String newHashedPassword =
+                passwordService.hashPassword(newPassword);
+
+        tenant.setPasswordHash(newHashedPassword);
+
+        return tenantRepository.save(tenant);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\LandlordService.java
+==================================================
+
+
+        package com.rental.smart_property_rental.service;
+import com.rental.smart_property_rental.dto.LandlordUpdateRequest;
+import com.rental.smart_property_rental.dto.LandlordRegisterRequest;
+import com.rental.smart_property_rental.model.Landlord;
+import com.rental.smart_property_rental.repository.LandlordRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class LandlordService {
+
+    private final LandlordRepository landlordRepository;
+    private final PasswordService passwordService;
+
+    public LandlordService(
+            LandlordRepository landlordRepository,
+            PasswordService passwordService) {
+
+        this.landlordRepository = landlordRepository;
+        this.passwordService = passwordService;
+    }
+
+    public List<Landlord> getAllLandlords() {
+        return landlordRepository.findAll();
+    }
+
+    // Landlord Registration
+    public Landlord registerLandlord(LandlordRegisterRequest request) {
+
+        // Check whether the email is already registered
+        if (landlordRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        Landlord landlord = new Landlord();
+
+        landlord.setFirstName(request.getFirstName());
+        landlord.setLastName(request.getLastName());
+        landlord.setEmail(request.getEmail());
+        landlord.setPhone(request.getPhone());
+
+        // Every newly registered landlord starts as Pending
+        landlord.setVerificationStatus("Pending");
+
+        // Hash the password before storing it
+        String hashedPassword =
+                passwordService.hashPassword(request.getPassword());
+
+        landlord.setPasswordHash(hashedPassword);
+
+        // Generate the next Landlord_ID
+        int nextNumber = (int) landlordRepository.count() + 1;
+
+        String landlordId =
+                "L" + String.format("%03d", nextNumber);
+
+        // Make sure the generated ID is actually unique
+        while (landlordRepository.findByLandlordId(landlordId).isPresent()) {
+            nextNumber++;
+
+            landlordId =
+                    "L" + String.format("%03d", nextNumber);
+        }
+
+        landlord.setLandlordId(landlordId);
+
+        return landlordRepository.save(landlord);
+    }
+    // Landlord Login
+    public Landlord loginLandlord(String email, String password) {
+
+        Landlord landlord = landlordRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid email or password"));
+
+        boolean passwordCorrect =
+                passwordService.verifyPassword(
+                        password,
+                        landlord.getPasswordHash()
+                );
+
+        if (!passwordCorrect) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return landlord;
+    }
+    //Landlord Change password
+    // Landlord Change Password
+    public Landlord changePassword(
+            String email,
+            String currentPassword,
+            String newPassword) {
+
+        Landlord landlord = landlordRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Landlord not found"));
+
+        boolean passwordCorrect =
+                passwordService.verifyPassword(
+                        currentPassword,
+                        landlord.getPasswordHash()
+                );
+
+        if (!passwordCorrect) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        String newHashedPassword =
+                passwordService.hashPassword(newPassword);
+
+        landlord.setPasswordHash(newHashedPassword);
+
+        return landlordRepository.save(landlord);
+    }
+    //Update email
+    public Landlord updateLandlord(
+            String landlordId,
+            LandlordUpdateRequest request) {
+
+        Landlord landlord =
+                landlordRepository.findByLandlordId(landlordId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Landlord not found"));
+
+        // Check whether the new email already belongs to another landlord
+        landlordRepository.findByEmail(request.getEmail())
+                .ifPresent(existingLandlord -> {
+
+                    if (!existingLandlord.getLandlordId()
+                            .equals(landlord.getLandlordId())) {
+
+                        throw new RuntimeException(
+                                "Email already registered"
+                        );
+                    }
+                });
+
+        landlord.setFirstName(request.getFirstName());
+        landlord.setLastName(request.getLastName());
+        landlord.setEmail(request.getEmail());
+        landlord.setPhone(request.getPhone());
+
+        return landlordRepository.save(landlord);
+    }
+
+
+}
+
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\PasswordService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+public class PasswordService {
+
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public PasswordService() {
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
+
+    public String hashPassword(String password) {
+        return passwordEncoder.encode(password);
+    }
+
+    public boolean verifyPassword(String password, String hashedPassword) {
+        return passwordEncoder.matches(password, hashedPassword);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\PropertyService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import com.rental.smart_property_rental.model.Property;
+import com.rental.smart_property_rental.repository.PropertyRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class PropertyService {
+
+    private final PropertyRepository propertyRepository;
+
+    public PropertyService(PropertyRepository propertyRepository) {
+        this.propertyRepository = propertyRepository;
+    }
+
+    // Get all properties
+    public List<Property> getAllProperties() {
+        return propertyRepository.findAll();
+    }
+
+    // Get property by Property_ID
+    public Optional<Property> getPropertyByPropertyId(String propertyId) {
+        return propertyRepository.findByPropertyId(propertyId);
+    }
+
+    // Get properties belonging to a landlord
+    public List<Property> getPropertiesByLandlord(String landlordId) {
+        return propertyRepository.findByLandlordId(landlordId);
+    }
+
+    // Create property
+    public Property createProperty(
+            Property property,
+            String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            throw new RuntimeException("X-User-Id header is required");
+        }
+
+        if (!userId.equals(property.getLandlordId())) {
+            throw new RuntimeException(
+                    "You can only create a property for your own landlord account"
+            );
+        }
+
+        if (property.getPropertyId() == null ||
+                property.getPropertyId().isBlank()) {
+            throw new RuntimeException("Property_ID is required");
+        }
+
+        if (propertyRepository
+                .existsByPropertyId(property.getPropertyId())) {
+            throw new RuntimeException("Property_ID already exists");
+        }
+
+        return propertyRepository.save(property);
+    }
+
+    // Update property
+    public Property updateProperty(
+            String propertyId,
+            Property updatedProperty,
+            String userId) {
+
+        Property existingProperty =
+                propertyRepository.findByPropertyId(propertyId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Property not found"));
+
+        // Ownership check
+        if (!userId.equals(existingProperty.getLandlordId())) {
+            throw new RuntimeException(
+                    "You are not authorized to modify this property"
+            );
+        }
+
+        // Property_ID cannot be changed
+        existingProperty.setPropertyId(
+                existingProperty.getPropertyId()
+        );
+
+        // Landlord_ID cannot be changed
+        existingProperty.setLandlordId(
+                existingProperty.getLandlordId()
+        );
+
+        existingProperty.setPropertyType(
+                updatedProperty.getPropertyType()
+        );
+
+        existingProperty.setLocation(
+                updatedProperty.getLocation()
+        );
+
+        existingProperty.setCity(
+                updatedProperty.getCity()
+        );
+
+        existingProperty.setPincode(
+                updatedProperty.getPincode()
+        );
+
+        existingProperty.setBhk(
+                updatedProperty.getBhk()
+        );
+
+        existingProperty.setAreaSqft(
+                updatedProperty.getAreaSqft()
+        );
+
+        existingProperty.setNumberOfBathrooms(
+                updatedProperty.getNumberOfBathrooms()
+        );
+
+        existingProperty.setMonthlyRent(
+                updatedProperty.getMonthlyRent()
+        );
+
+        existingProperty.setSecurityDeposit(
+                updatedProperty.getSecurityDeposit()
+        );
+
+        existingProperty.setFloorNumber(
+                updatedProperty.getFloorNumber()
+        );
+
+        existingProperty.setFurnishingStatus(
+                updatedProperty.getFurnishingStatus()
+        );
+
+        existingProperty.setAvailableFrom(
+                updatedProperty.getAvailableFrom()
+        );
+
+        existingProperty.setPropertyStatus(
+                updatedProperty.getPropertyStatus()
+        );
+
+        return propertyRepository.save(existingProperty);
+    }
+
+    // Delete property
+    public void deleteProperty(
+            String propertyId,
+            String userId) {
+
+        Property existingProperty =
+                propertyRepository.findByPropertyId(propertyId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Property not found"));
+
+        // Ownership check
+        if (!userId.equals(existingProperty.getLandlordId())) {
+            throw new RuntimeException(
+                    "You are not authorized to delete this property"
+            );
+        }
+
+        propertyRepository.delete(existingProperty);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\TenantAmenityPreferenceService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import com.rental.smart_property_rental.model.Amenity;
+import com.rental.smart_property_rental.model.Tenant;
+import com.rental.smart_property_rental.model.TenantAmenityPreference;
+import com.rental.smart_property_rental.repository.AmenityRepository;
+import com.rental.smart_property_rental.repository.TenantAmenityPreferenceRepository;
+import com.rental.smart_property_rental.repository.TenantRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+public class TenantAmenityPreferenceService {
+
+    private final TenantAmenityPreferenceRepository
+            tenantAmenityPreferenceRepository;
+
+    private final AmenityRepository amenityRepository;
+
+    private final TenantRepository tenantRepository;
+
+    public TenantAmenityPreferenceService(
+            TenantAmenityPreferenceRepository tenantAmenityPreferenceRepository,
+            AmenityRepository amenityRepository,
+            TenantRepository tenantRepository) {
+
+        this.tenantAmenityPreferenceRepository =
+                tenantAmenityPreferenceRepository;
+
+        this.amenityRepository =
+                amenityRepository;
+
+        this.tenantRepository =
+                tenantRepository;
+    }
+
+    // Validate Tenant_ID
+    private void validateTenantId(String tenantId) {
+
+        if (tenantId == null || tenantId.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Tenant_ID is required"
+            );
+        }
+
+        boolean tenantExists =
+                tenantRepository.findAll().stream()
+                        .anyMatch(tenant ->
+                                tenantId.equals(tenant.getTenantId())
+                        );
+
+        if (!tenantExists) {
+
+            throw new IllegalArgumentException(
+                    "Tenant_ID is invalid"
+            );
+        }
+    }
+
+    // Validate Amenity_IDs
+    private void validateAmenityIds(List<String> amenityIds) {
+
+        if (amenityIds == null || amenityIds.isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "At least one amenity must be selected"
+            );
+        }
+
+        if (amenityIds.stream()
+                .anyMatch(id -> id == null || id.isBlank())) {
+
+            throw new IllegalArgumentException(
+                    "Amenity_ID cannot be empty"
+            );
+        }
+
+        // Remove duplicate IDs from the request
+        List<String> uniqueAmenityIds =
+                amenityIds.stream()
+                        .distinct()
+                        .toList();
+
+        // Check all IDs in one database query
+        List<Amenity> existingAmenities =
+                amenityRepository.findByAmenityIdIn(
+                        uniqueAmenityIds
+                );
+
+        // Compare the IDs that actually exist
+        Set<String> foundAmenityIds =
+                existingAmenities.stream()
+                        .map(Amenity::getAmenityId)
+                        .collect(Collectors.toSet());
+
+        if (!foundAmenityIds.containsAll(uniqueAmenityIds)) {
+
+            throw new IllegalArgumentException(
+                    "One or more Amenity_IDs are invalid"
+            );
+        }
+    }
+
+    // GET
+    public Optional<TenantAmenityPreference> getPreferencesByTenantId(
+            String tenantId) {
+
+        return tenantAmenityPreferenceRepository
+                .findByTenantId(tenantId);
+    }
+
+    // CREATE
+    public TenantAmenityPreference createPreferences(
+            TenantAmenityPreference preference) {
+
+        // First check whether Tenant_ID is valid
+        validateTenantId(
+                preference.getTenantId()
+        );
+
+        // Check that tenant doesn't already have preferences
+        if (tenantAmenityPreferenceRepository
+                .findByTenantId(preference.getTenantId())
+                .isPresent()) {
+
+            throw new RuntimeException(
+                    "Amenity preferences already exist for tenant: "
+                            + preference.getTenantId()
+            );
+        }
+
+        // Check that all Amenity_IDs are valid
+        validateAmenityIds(
+                preference.getAmenityIds()
+        );
+
+        // Remove duplicate IDs before saving
+        preference.setAmenityIds(
+                preference.getAmenityIds()
+                        .stream()
+                        .distinct()
+                        .toList()
+        );
+
+        return tenantAmenityPreferenceRepository
+                .save(preference);
+    }
+
+    // UPDATE
+    public TenantAmenityPreference updatePreferences(
+            String id,
+            TenantAmenityPreference updatedPreference) {
+
+        TenantAmenityPreference existingPreference =
+                tenantAmenityPreferenceRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Amenity preferences not found with ID: "
+                                                + id
+                                )
+                        );
+
+        // Validate Tenant_ID
+        validateTenantId(
+                updatedPreference.getTenantId()
+        );
+
+        // Validate all new Amenity_IDs
+        validateAmenityIds(
+                updatedPreference.getAmenityIds()
+        );
+
+        // Update Tenant_ID
+        existingPreference.setTenantId(
+                updatedPreference.getTenantId()
+        );
+
+        // Update with unique Amenity_IDs
+        existingPreference.setAmenityIds(
+                updatedPreference.getAmenityIds()
+                        .stream()
+                        .distinct()
+                        .toList()
+        );
+
+        return tenantAmenityPreferenceRepository
+                .save(existingPreference);
+    }
+
+    // DELETE
+    public void deletePreferences(String id) {
+
+        if (!tenantAmenityPreferenceRepository
+                .existsById(id)) {
+
+            throw new RuntimeException(
+                    "Amenity preferences not found with ID: "
+                            + id
+            );
+        }
+
+        tenantAmenityPreferenceRepository
+                .deleteById(id);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\TenantPreferenceService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import com.rental.smart_property_rental.model.TenantPreference;
+import com.rental.smart_property_rental.repository.TenantPreferenceRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class TenantPreferenceService {
+
+    private final TenantPreferenceRepository tenantPreferenceRepository;
+
+    public TenantPreferenceService(
+            TenantPreferenceRepository tenantPreferenceRepository) {
+        this.tenantPreferenceRepository = tenantPreferenceRepository;
+    }
+
+    // GET
+    public Optional<TenantPreference> getPreferencesByTenantId(String tenantId) {
+
+        return tenantPreferenceRepository.findByTenantId(tenantId);
+    }
+
+    // CREATE
+    public TenantPreference createPreferences(
+            TenantPreference preference) {
+
+        // A tenant can have only one preference document
+        if (tenantPreferenceRepository
+                .findByTenantId(preference.getTenantId())
+                .isPresent()) {
+
+            throw new RuntimeException(
+                    "Preferences already exist for tenant: "
+                            + preference.getTenantId()
+            );
+        }
+
+        // Preference_ID must be entered
+        // by the user
+        if (preference.getPreferenceId() == null ||
+                preference.getPreferenceId().isBlank()) {
+
+            throw new RuntimeException(
+                    "Preference_ID is required"
+            );
+        }
+
+        return tenantPreferenceRepository.save(preference);
+    }
+
+    // UPDATE
+    public TenantPreference updatePreferences(
+            String id,
+            TenantPreference updatedPreference) {
+
+        TenantPreference existingPreference =
+                tenantPreferenceRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Preferences not found"
+                                )
+                        );
+
+        // Keep the existing Preference_ID
+        existingPreference.setPreferenceId(
+                existingPreference.getPreferenceId()
+        );
+
+        // Keep the existing Tenant_ID
+        existingPreference.setTenantId(
+                existingPreference.getTenantId()
+        );
+
+        // Update preference fields
+        existingPreference.setPreferredLocation(
+                updatedPreference.getPreferredLocation()
+        );
+
+        existingPreference.setMinimumBudget(
+                updatedPreference.getMinimumBudget()
+        );
+
+        existingPreference.setMaximumBudget(
+                updatedPreference.getMaximumBudget()
+        );
+
+        existingPreference.setPreferredPropertyType(
+                updatedPreference.getPreferredPropertyType()
+        );
+
+        existingPreference.setPreferredBhk(
+                updatedPreference.getPreferredBhk()
+        );
+
+        existingPreference.setMinimumAreaSqft(
+                updatedPreference.getMinimumAreaSqft()
+        );
+
+        existingPreference.setMinimumBathrooms(
+                updatedPreference.getMinimumBathrooms()
+        );
+
+        existingPreference.setNumberOfOccupants(
+                updatedPreference.getNumberOfOccupants()
+        );
+
+        existingPreference.setFurnishingPreference(
+                updatedPreference.getFurnishingPreference()
+        );
+
+        existingPreference.setPreferredFloor(
+                updatedPreference.getPreferredFloor()
+        );
+
+        existingPreference.setMinimumLeaseDuration(
+                updatedPreference.getMinimumLeaseDuration()
+        );
+
+        existingPreference.setPreferredMoveInDate(
+                updatedPreference.getPreferredMoveInDate()
+        );
+
+        return tenantPreferenceRepository.save(existingPreference);
+    }
+
+    // DELETE
+    public void deletePreferences(String id) {
+
+        tenantPreferenceRepository.deleteById(id);
+    }
+}
+
+==================================================
+FILE: C:\Users\shri_\Downloads\smart-property-rental\smart-property-rental\src\main\java\com\rental\smart_property_rental\service\TenantService.java
+==================================================
+
+package com.rental.smart_property_rental.service;
+
+import com.rental.smart_property_rental.exception.InvalidCredentialsException;
+import com.rental.smart_property_rental.dto.UpdateTenantRequest;
+import com.rental.smart_property_rental.model.Tenant;
+import com.rental.smart_property_rental.repository.TenantRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class TenantService {
+
+    private final TenantRepository tenantRepository;
+    private final PasswordService passwordService;
+
+    public TenantService(TenantRepository tenantRepository,
+                         PasswordService passwordService) {
+
+        this.tenantRepository = tenantRepository;
+        this.passwordService = passwordService;
+    }
+
+    public List<Tenant> getAllTenants() {
+        return tenantRepository.findAll();
+    }
+
+    public Optional<Tenant> getTenantById(String id) {
+        return tenantRepository.findById(id);
+    }
+
+    public Tenant getTenantByEmail(String email) {
+
+        return tenantRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant not found"));
+    }
+
+    public Tenant updateTenantProfile(
+            String email,
+            UpdateTenantRequest updatedTenant) {
+
+        Tenant existingTenant = tenantRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant not found"));
+
+        // Check whether the new email is already used
+        // by another tenant
+        if (!email.equals(updatedTenant.getEmail())) {
+
+            Optional<Tenant> tenantWithNewEmail =
+                    tenantRepository.findByEmail(updatedTenant.getEmail());
+
+            if (tenantWithNewEmail.isPresent()) {
+                throw new RuntimeException("Email already registered");
+            }
+
+            existingTenant.setEmail(updatedTenant.getEmail());
+        }
+
+        // Update profile information
+        existingTenant.setFirstName(updatedTenant.getFirstName());
+        existingTenant.setLastName(updatedTenant.getLastName());
+        existingTenant.setPhone(updatedTenant.getPhone());
+        existingTenant.setGender(updatedTenant.getGender());
+        existingTenant.setOccupation(updatedTenant.getOccupation());
+        existingTenant.setAge(updatedTenant.getAge());
+        existingTenant.setTenantType(updatedTenant.getTenantType());
+        existingTenant.setHasPets(updatedTenant.getHasPets());
+
+        // Tenant_ID is NOT changed.
+        // Password_Hash is NOT changed here.
+
+        return tenantRepository.save(existingTenant);
+    }
+
+    public Tenant saveTenant(Tenant tenant) {
+        return tenantRepository.save(tenant);
+    }
+
+    public void deleteTenant(String id) {
+        tenantRepository.deleteById(id);
+    }
+
+    // Tenant login
+    public Tenant login(String email, String password) {
+
+        Tenant tenant = tenantRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Invalid email or password"));
+
+        boolean passwordCorrect = passwordService.verifyPassword(
+                password,
+                tenant.getPasswordHash()
+        );
+
+        if (!passwordCorrect) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+
+        return tenant;
+    }
+}

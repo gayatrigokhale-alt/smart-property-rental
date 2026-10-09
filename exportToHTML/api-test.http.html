@@ -1,0 +1,1270 @@
+<html>
+<head>
+<title>api-test.http</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #c77dbb; font-style: italic;}
+.s3 { color: #bcbec4;}
+.s4 { color: #bcbec4;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+api-test.http</font>
+</center></td></tr></table>
+<pre><span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenants</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;message&quot;: &quot;Login successful&quot;, 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot; 
+}</span>
+<span class="s5">### Update tenant</span>
+
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/6ab7accdaeb992bfb2292faa</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543221&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Software Engineer&quot;, 
+  &quot;age&quot;: 27 
+}</span>
+
+<span class="s5">### Delete tenant</span>
+
+<span class="s0">DELETE </span><span class="s1">http://localhost:8080/api/tenants/6ab7accdaeb992bfb2292faa</span>
+
+<span class="s5">### Check deleted tenant</span>
+
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenants/6ab7accdaeb992bfb2292faa</span>
+
+<span class="s5">### Tenant Registration</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;message&quot;: &quot;Login successful&quot;, 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot; 
+}</span>
+<span class="s5">### Check tenant</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenants/6aae5bbf2a762c2749691474</span>
+
+<span class="s5">### Tenant Login</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot;, 
+  &quot;password&quot;: &quot;mypassword123&quot; 
+}</span>
+
+<span class="s5">### Tenant Login - Wrong Password</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot;, 
+  &quot;password&quot;: &quot;wrongpassword&quot; 
+}</span>
+
+<span class="s5">### View Tenant Profile</span>
+
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenants/profile/neha.desai@rental.test</span>
+
+<span class="s5">### Update tenant profile</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/profile/neha.desai@rental.test</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;phone&quot;: &quot;9876543999&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Senior Software Engineer&quot;, 
+  &quot;age&quot;: 28, 
+  &quot;tenantType&quot;: &quot;Bachelor&quot;, 
+  &quot;hasPets&quot;: true 
+}</span>
+
+<span class="s5">### Get T001 preferences</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenant-preferences/T001</span>
+
+<span class="s5">### Get T011 preferences</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenant-preferences/T011</span>
+
+<span class="s5">### Create T011 preferences</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;preferredLocation&quot;: &quot;Kothrud&quot;, 
+  &quot;minimumBudget&quot;: 18000, 
+  &quot;maximumBudget&quot;: 30000, 
+  &quot;preferredPropertyType&quot;: &quot;Apartment&quot;, 
+  &quot;preferredBhk&quot;: 2, 
+  &quot;minimumAreaSqft&quot;: 900, 
+  &quot;minimumBathrooms&quot;: 2, 
+  &quot;numberOfOccupants&quot;: 2, 
+  &quot;furnishingPreference&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;preferredFloor&quot;: &quot;Any&quot;, 
+  &quot;minimumLeaseDuration&quot;: 12, 
+  &quot;preferredMoveInDate&quot;: &quot;2026-10-15&quot; 
+}</span>
+
+<span class="s5">### Update T011 preferences</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-preferences/6ab8df1036fea590102145e2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;preferenceId&quot;: &quot;PR011&quot;, 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;preferredLocation&quot;: &quot;Kothrud&quot;, 
+  &quot;minimumBudget&quot;: 20000, 
+  &quot;maximumBudget&quot;: 32000, 
+  &quot;preferredPropertyType&quot;: &quot;Apartment&quot;, 
+  &quot;preferredBhk&quot;: 2, 
+  &quot;minimumAreaSqft&quot;: 1000, 
+  &quot;minimumBathrooms&quot;: 2, 
+  &quot;numberOfOccupants&quot;: 2, 
+  &quot;furnishingPreference&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;preferredFloor&quot;: &quot;Any&quot;, 
+  &quot;minimumLeaseDuration&quot;: 12, 
+  &quot;preferredMoveInDate&quot;: &quot;2026-10-15&quot; 
+}</span>
+
+<span class="s5">### Delete T011 preferences</span>
+<span class="s0">DELETE </span><span class="s1">http://localhost:8080/api/tenant-preferences/6ab8df1036fea590102145e2</span>
+<span class="s5">###Generate preference ID</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;preferredLocation&quot;: &quot;Kothrud&quot;, 
+  &quot;minimumBudget&quot;: 18000, 
+  &quot;maximumBudget&quot;: 30000, 
+  &quot;preferredPropertyType&quot;: &quot;Apartment&quot;, 
+  &quot;preferredBhk&quot;: 2, 
+  &quot;minimumAreaSqft&quot;: 900, 
+  &quot;minimumBathrooms&quot;: 2, 
+  &quot;numberOfOccupants&quot;: 2, 
+  &quot;furnishingPreference&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;preferredFloor&quot;: &quot;Any&quot;, 
+  &quot;minimumLeaseDuration&quot;: 12, 
+  &quot;preferredMoveInDate&quot;: &quot;2026-10-15&quot; 
+}</span>
+
+<span class="s5">### Duplication</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;preferredLocation&quot;: &quot;Kothrud&quot;, 
+  &quot;minimumBudget&quot;: 18000, 
+  &quot;maximumBudget&quot;: 30000, 
+  &quot;preferredPropertyType&quot;: &quot;Apartment&quot;, 
+  &quot;preferredBhk&quot;: 2, 
+  &quot;minimumAreaSqft&quot;: 900, 
+  &quot;minimumBathrooms&quot;: 2, 
+  &quot;numberOfOccupants&quot;: 2, 
+  &quot;furnishingPreference&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;preferredFloor&quot;: &quot;Any&quot;, 
+  &quot;minimumLeaseDuration&quot;: 12, 
+  &quot;preferredMoveInDate&quot;: &quot;2026-10-15&quot; 
+}</span>
+
+<span class="s5">### Get tenant preferences</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenant-preferences/T001</span>
+
+<span class="s5">### Get T011 preferences</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenant-preferences/T011</span>
+
+<span class="s5">### Create tenant preference</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;preferenceId&quot;: &quot;PR012&quot;, 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;preferredLocation&quot;: &quot;Baner&quot;, 
+  &quot;minimumBudget&quot;: 20000, 
+  &quot;maximumBudget&quot;: 30000, 
+  &quot;preferredPropertyType&quot;: &quot;Apartment&quot;, 
+  &quot;preferredBhk&quot;: 2, 
+  &quot;minimumAreaSqft&quot;: 900, 
+  &quot;minimumBathrooms&quot;: 2, 
+  &quot;numberOfOccupants&quot;: 2, 
+  &quot;furnishingPreference&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;preferredFloor&quot;: &quot;Any floor&quot;, 
+  &quot;minimumLeaseDuration&quot;: 12, 
+  &quot;preferredMoveInDate&quot;: &quot;2026-10-15&quot; 
+}</span>
+
+<span class="s5">### Update tenant preference</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-preferences/6aae6a342a762c27496914de</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;preferredLocation&quot;: &quot;Baner&quot;, 
+  &quot;minimumBudget&quot;: 20000, 
+  &quot;maximumBudget&quot;: 32000, 
+  &quot;preferredPropertyType&quot;: &quot;Apartment&quot;, 
+  &quot;preferredBhk&quot;: 2, 
+  &quot;minimumAreaSqft&quot;: 1000, 
+  &quot;minimumBathrooms&quot;: 2, 
+  &quot;numberOfOccupants&quot;: 2, 
+  &quot;furnishingPreference&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;preferredFloor&quot;: &quot;Any floor&quot;, 
+  &quot;minimumLeaseDuration&quot;: 12, 
+  &quot;preferredMoveInDate&quot;: &quot;2026-10-15&quot; 
+}</span>
+
+<span class="s5">### Create preference for T012</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;preferenceId&quot;: &quot;PR012&quot;, 
+  &quot;tenantId&quot;: &quot;T012&quot;, 
+  &quot;preferredLocation&quot;: &quot;Baner&quot;, 
+  &quot;minimumBudget&quot;: 20000, 
+  &quot;maximumBudget&quot;: 30000, 
+  &quot;preferredPropertyType&quot;: &quot;Apartment&quot;, 
+  &quot;preferredBhk&quot;: 2, 
+  &quot;minimumAreaSqft&quot;: 900, 
+  &quot;minimumBathrooms&quot;: 2, 
+  &quot;numberOfOccupants&quot;: 2, 
+  &quot;furnishingPreference&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;preferredFloor&quot;: &quot;Any&quot;, 
+  &quot;minimumLeaseDuration&quot;: 12, 
+  &quot;preferredMoveInDate&quot;: &quot;2026-10-15&quot; 
+}</span>
+
+<span class="s5">### Get T012 preferences</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenant-preferences/T012</span>
+
+<span class="s5">### Tenant amenity preferences</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/T001</span>
+
+<span class="s5">### POST</span>
+<span class="s5">### Create tenant amenity preferences</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A004&quot;, 
+    &quot;A008&quot;, 
+    &quot;A012&quot; 
+  ] 
+}</span>
+
+<span class="s5">### Update tenant amenity preferences</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6ab8f1a42595caee851d0a19</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A004&quot;, 
+    &quot;A007&quot;, 
+    &quot;A009&quot;, 
+    &quot;A012&quot; 
+  ] 
+}</span>
+
+<span class="s5">###Delete</span>
+<span class="s5">### Delete tenant amenity preferences</span>
+<span class="s0">DELETE </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6ab8f1a42595caee851d0a19</span>
+
+<span class="s5">###Invalid POST</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A999&quot; 
+  ] 
+}</span>
+<span class="s5">###Invalid Post</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T013&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A838383833&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T014&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A838383833&quot; 
+  ] 
+}</span>
+
+
+<span class="s5">###</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T016&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A838383833&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T018&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A99999&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T001&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A9999999999&quot; 
+  ] 
+}</span>
+<span class="s5">###</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T001&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A999&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T001&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A7878&quot; 
+  ] 
+}</span>
+<span class="s5">###</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T001&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A787896&quot; 
+  ] 
+}</span>
+<span class="s5">###</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T001&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A787896&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T001&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A787896&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T017&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A787896&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s5">### Test Case 3 - Invalid PUT: Tenant_ID does not exist</span>
+
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae6a342a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T999&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T999&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s5">### Test Case 4 - Invalid POST: Invalid Tenant_ID</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T999&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s5">### Test Case 5 - Valid PUT</span>
+
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences/6aae69ca2a762c27496914d2</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T001&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A004&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s5">### Test Case 6 - Valid POST</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T012&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A004&quot; 
+  ] 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenant-amenity-preferences</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T011&quot;, 
+  &quot;amenityIds&quot;: [ 
+    &quot;A001&quot;, 
+    &quot;A003&quot;, 
+    &quot;A004&quot; 
+  ] 
+}</span>
+<span class="s5">###Tenant section</span>
+<span class="s5">### TENANT - Invalid ID</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenants/nonexistent-id</span>
+<span class="s5">### TENANT - Invalid Email</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenants/profile/nonexistent@rental.test</span>
+
+<span class="s5">### TENANT - Update Nonexistent Tenant</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/nonexistent-id</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;tenantId&quot;: &quot;T999&quot;, 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;User&quot;, 
+  &quot;email&quot;: &quot;test.user@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9999999999&quot;, 
+  &quot;gender&quot;: &quot;Other&quot;, 
+  &quot;occupation&quot;: &quot;Student&quot;, 
+  &quot;age&quot;: 20, 
+  &quot;tenantType&quot;: &quot;Bachelor&quot;, 
+  &quot;hasPets&quot;: false 
+}</span>
+
+<span class="s5">### TENANT - Delete Nonexistent Tenant</span>
+<span class="s0">DELETE </span><span class="s1">http://localhost:8080/api/tenants/nonexistent-id</span>
+
+<span class="s5">### TENANT - Duplicate Email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Duplicate&quot;, 
+  &quot;lastName&quot;: &quot;Email&quot;, 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9999999999&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Student&quot;, 
+  &quot;age&quot;: 21, 
+  &quot;tenantType&quot;: &quot;Bachelor&quot;, 
+  &quot;hasPets&quot;: false, 
+  &quot;password&quot;: &quot;test123&quot; 
+}</span>
+
+<span class="s5">### TENANT - PUT - Duplicate Email</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/profile/neha.desai@rental.test</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;email&quot;: &quot;ananya.patil@example.com&quot;, 
+  &quot;phone&quot;: &quot;9867012345&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Student&quot;, 
+  &quot;age&quot;: 21, 
+  &quot;tenantType&quot;: &quot;Bachelor&quot;, 
+  &quot;hasPets&quot;: false 
+}</span>
+
+<span class="s5">### TENANT - PUT - Duplicate Email</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/profile/neha.desai@rental.test</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;email&quot;: &quot;ananya.patil@example.com&quot;, 
+  &quot;phone&quot;: &quot;9867012345&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Student&quot;, 
+  &quot;age&quot;: 21, 
+  &quot;tenantType&quot;: &quot;Bachelor&quot;, 
+  &quot;hasPets&quot;: false 
+}</span>
+
+<span class="s5">### TENANT - PUT - Change Email Successfully</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/profile/neha.desai@rental.test</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;email&quot;: &quot;neha.updated@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9867012345&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Student&quot;, 
+  &quot;age&quot;: 21, 
+  &quot;tenantType&quot;: &quot;Bachelor&quot;, 
+  &quot;hasPets&quot;: false 
+}</span>
+
+<span class="s5">### TENANT - LOGIN - New Email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.updated@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### TENANT - LOGIN - Old Email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### TEMP - Reset Neha Password</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/reset-password?email=neha.updated@rental.test&amp;newPassword=Test%40123</span>
+
+<span class="s5">### TENANT - LOGIN - New Email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.updated@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### TENANT - LOGIN - Old Email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">###Invalid cases</span>
+<span class="s5">### TEST - Invalid Email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;User&quot;, 
+  &quot;email&quot;: &quot;test@&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;gender&quot;: &quot;Male&quot;, 
+  &quot;occupation&quot;: &quot;Student&quot;, 
+  &quot;age&quot;: 21, 
+  &quot;tenantType&quot;: &quot;Student&quot;, 
+  &quot;hasPets&quot;: false, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### TEST - Multiple Validation Errors</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;&quot;, 
+  &quot;lastName&quot;: &quot;&quot;, 
+  &quot;email&quot;: &quot;wrong&quot;, 
+  &quot;phone&quot;: &quot;123&quot;, 
+  &quot;gender&quot;: &quot;Unknown&quot;, 
+  &quot;occupation&quot;: &quot;&quot;, 
+  &quot;age&quot;: -15, 
+  &quot;tenantType&quot;: &quot;Something&quot;, 
+  &quot;hasPets&quot;: null, 
+  &quot;password&quot;: &quot;123&quot; 
+}</span>
+
+<span class="s5">### TEST - Duplicate Email During Registration</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Duplicate&quot;, 
+  &quot;lastName&quot;: &quot;Email&quot;, 
+  &quot;email&quot;: &quot;neha.updated@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543211&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Student&quot;, 
+  &quot;age&quot;: 21, 
+  &quot;tenantType&quot;: &quot;Student&quot;, 
+  &quot;hasPets&quot;: false, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### TEST - Database Connection</span>
+
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenants</span>
+
+<span class="s5">### Test 5(ii-a): Duplicate email during profile update</span>
+
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/profile/neha.updated@rental.test</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;email&quot;: &quot;ananya.patil@example.com&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Software Engineer&quot;, 
+  &quot;age&quot;: 24, 
+  &quot;tenantType&quot;: &quot;Working Professional&quot;, 
+  &quot;hasPets&quot;: false 
+}</span>
+
+<span class="s5">### Test 5(ii-b): New unused email during profile update</span>
+
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/tenants/profile/neha.updated@rental.test</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;email&quot;: &quot;neha.final@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;gender&quot;: &quot;Female&quot;, 
+  &quot;occupation&quot;: &quot;Software Engineer&quot;, 
+  &quot;age&quot;: 24, 
+  &quot;tenantType&quot;: &quot;Working Professional&quot;, 
+  &quot;hasPets&quot;: false 
+}</span>
+
+<span class="s5">### Login with updated email</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.final@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Login with old email</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.updated@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Set password for existing tenant</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/reset-password?email=ananya.patil@example.com&amp;newPassword=Test@123</span>
+
+<span class="s5">###</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/tenants</span>
+
+<span class="s5">### Set password for T001</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/reset-password?email=ananya.patil@example.com&amp;newPassword=Test@123</span>
+<span class="s5">### Login T001</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;ananya.patil@example.com&quot;, 
+  &quot;password&quot;: &quot;Te&quot; 
+}</span>
+
+<span class="s5">### Set password for T002</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/reset-password?email=rahul.verma@rental.test&amp;newPassword=Test@123</span>
+
+<span class="s5">### Login T002</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.final@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">###Change Password</span>
+<span class="s5">### Change T001 password</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/change-password?email=ananya.patil@example.com</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;currentPassword&quot;: &quot;Test@123&quot;, 
+  &quot;newPassword&quot;: &quot;NewTest@123&quot; 
+}</span>
+
+<span class="s5">### Login T001 with new password</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;ananya.patil@example.com&quot;, 
+  &quot;password&quot;: &quot;NewTest@123&quot; 
+}</span>
+
+<span class="s5">### Old reset-password endpoint — should NOT exist</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/reset-password?email=ananya.patil@example.com&amp;newPassword=SomeNewPassword@123</span>
+<span class="s5">### Get all landlords</span>
+
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/landlords</span>
+
+<span class="s5">### Initialize existing landlords</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/initialize</span>
+
+<span class="s5">### Landlord login - Rajesh</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;suresh.patil@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Tenant trying to login as landlord</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;ananya.sharma@rental.test&quot;, 
+  &quot;password&quot;: &quot;NewTest@123&quot; 
+}</span>
+
+<span class="s5">### Landlord trying to login as tenant</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/auth/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;rajesh.sharma@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Rajesh - login with current password</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;rajesh.sharma@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Rajesh - change password</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/change-password?email=rajesh.sharma@rental.test</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;currentPassword&quot;: &quot;Test@123&quot;, 
+  &quot;newPassword&quot;: &quot;Landlord@123&quot; 
+}</span>
+
+<span class="s5">### Rajesh - old password should fail</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;rajesh.sharma@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+<span class="s5">### Rajesh - new password should work</span>
+
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;rajesh.sharma@rental.test&quot;, 
+  &quot;password&quot;: &quot;Landlord@123&quot; 
+}</span>
+
+<span class="s5">###</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/landlords/</span>
+
+<span class="s5">### TC-LANDLORD-02: Retrieve landlord using nonexistent email</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/landlords/profile/nonexistent@rental.test</span>
+
+<span class="s5">### TC-LANDLORD-03: Update nonexistent landlord</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/landlords/L999</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;email&quot;: &quot;test.landlord@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot; 
+}</span>
+
+<span class="s5">### TC-LANDLORD-04: Delete nonexistent landlord</span>
+<span class="s0">DELETE </span><span class="s1">http://localhost:8080/api/landlords/L999</span>
+<span class="s5">### TC-LANDLORD-05A: Duplicate email during registration</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Duplicate&quot;, 
+  &quot;lastName&quot;: &quot;Test&quot;, 
+  &quot;email&quot;: &quot;rajesh.sharma@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Test MongoDB connection through existing landlord endpoint</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/landlords</span>
+
+<span class="s5">### TC-LANDLORD-05B: Duplicate email during update</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/landlords/L004</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Pooja&quot;, 
+  &quot;lastName&quot;: &quot;Mehta&quot;, 
+  &quot;email&quot;: &quot;rajesh.sharma@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9867012348&quot; 
+}</span>
+
+<span class="s5">### TC-LANDLORD-05C: Update to a new email</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/landlords/L002</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Neha&quot;, 
+  &quot;lastName&quot;: &quot;Desai&quot;, 
+  &quot;email&quot;: &quot;neha.new@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9867012346&quot; 
+}</span>
+
+<span class="s5">### TC-LANDLORD-05D: Login using updated email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.new@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### TC-LANDLORD-05E: Login using old email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;neha.desai@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Invalid landlord ID</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080//api/landlords/L999</span>
+
+<span class="s5">### TC-LANDLORD-03: Update nonexistent landlord</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/landlords/L999</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;email&quot;: &quot;test.l999@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot; 
+}</span>
+
+<span class="s5">### TC-LANDLORD-06A: Automatic Landlord_ID generation</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;email&quot;: &quot;test.landlord1@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### TC-LANDLORD-06B: Next automatic Landlord_ID</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord2&quot;, 
+  &quot;email&quot;: &quot;test.landlord2@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543211&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+
+<span class="s5">### TC-LANDLORD-07A: Missing first name</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;lastName&quot;: &quot;Test&quot;, 
+  &quot;email&quot;: &quot;missing.firstname@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+<span class="s5">### TC-LANDLORD-07B: Missing last name</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;email&quot;: &quot;missing.lastname@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+<span class="s5">### TC-LANDLORD-07C: Missing email</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+<span class="s5">### TC-LANDLORD-07D: Missing phone</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;email&quot;: &quot;missing.phone@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+<span class="s5">### TC-LANDLORD-07E: Missing password</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;email&quot;: &quot;missing.password@rental.test&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot; 
+}</span>
+<span class="s5">### TC-LANDLORD-08: Invalid email format</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;email&quot;: &quot;not-an-email&quot;, 
+  &quot;phone&quot;: &quot;9876543210&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+<span class="s5">### TC-LANDLORD-09: Invalid phone number</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/register</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;firstName&quot;: &quot;Test&quot;, 
+  &quot;lastName&quot;: &quot;Landlord&quot;, 
+  &quot;email&quot;: &quot;invalid.phone@rental.test&quot;, 
+  &quot;phone&quot;: &quot;12345&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+<span class="s5">### Admin Login</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/admin/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;admin@rental.test&quot;, 
+  &quot;password&quot;: &quot;YOUR_ADMIN_PASSWORD&quot; 
+}</span>
+
+<span class="s5">### Admin Login</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/admin/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;admin@rental.test&quot;, 
+  &quot;password&quot;: &quot;Admin@123&quot; 
+}</span>
+
+<span class="s5">### Admin Login - Correct Password</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/admin/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;admin@rental.test&quot;, 
+  &quot;password&quot;: &quot;Admin@123&quot; 
+}</span>
+
+<span class="s5">### Try Landlord Login as Admin</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/admin/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;suresh.patil@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Try Tenant Login as Admin</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/admin/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;rahul.verma@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Try Admin Login as Tenant</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenants/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;admin@rental.test&quot;, 
+  &quot;password&quot;: &quot;Admin@123&quot; 
+}</span>
+
+<span class="s5">### Try Admin Login as Landlord</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;admin@rental.test&quot;, 
+  &quot;password&quot;: &quot;Admin@123&quot; 
+}</span>
+
+<span class="s5">### Try Tenant Login as Landlord</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/landlords/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;ananya.patil@example.com&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Try Landlord Login as Tenant</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenants/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;suresh.patil@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Genuine Tenant</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenants/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;rahul.verma@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">###Landlord as a tenant</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenants/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;suresh.patil@rental.test&quot;, 
+  &quot;password&quot;: &quot;Test@123&quot; 
+}</span>
+
+<span class="s5">### Admin as a tenant</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/tenants/login</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;email&quot;: &quot;admin@rental.test&quot;, 
+  &quot;password&quot;: &quot;Admin@123&quot; 
+}</span>
+
+<span class="s5">###Property Section</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/properties</span>
+
+<span class="s5">###</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/properties/P001</span>
+<span class="s5">###</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/properties/landlord/L001</span>
+<span class="s2">X-User-Id</span><span class="s1">: </span><span class="s3">L001</span>
+
+<span class="s5">###</span>
+<span class="s0">GET </span><span class="s1">http://localhost:8080/api/properties/landlord/L001</span>
+<span class="s2">X-User-Id</span><span class="s1">: </span><span class="s3">L002</span>
+
+<span class="s5">###</span>
+<span class="s5">### Test 5 - Create Property</span>
+<span class="s0">POST </span><span class="s1">http://localhost:8080/api/properties</span>
+<span class="s2">X-User-Id</span><span class="s1">: </span><span class="s3">L002</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s4">{ 
+  &quot;propertyId&quot;: &quot;P016&quot;, 
+  &quot;landlordId&quot;: &quot;L001&quot;, 
+  &quot;propertyType&quot;: &quot;Apartment&quot;, 
+  &quot;location&quot;: &quot;Viman Nagar&quot;, 
+  &quot;city&quot;: &quot;Pune&quot;, 
+  &quot;pincode&quot;: &quot;411014&quot;, 
+  &quot;bhk&quot;: 2, 
+  &quot;areaSqft&quot;: 1000, 
+  &quot;numberOfBathrooms&quot;: 2, 
+  &quot;monthlyRent&quot;: 28000, 
+  &quot;securityDeposit&quot;: 56000, 
+  &quot;floorNumber&quot;: 4, 
+  &quot;furnishingStatus&quot;: &quot;Semi-Furnished&quot;, 
+  &quot;availableFrom&quot;: &quot;2026-10-15&quot;, 
+  &quot;propertyStatus&quot;: &quot;Available&quot; 
+}</span>
+
+<span class="s5">###</span>
+<span class="s5">### Test 7 - Update Property</span>
+<span class="s0">PUT </span><span class="s1">http://localhost:8080/api/properties/P001</span>
+<span class="s2">X-User-Id</span><span class="s1">: </span><span class="s3">L002</span>
+<span class="s2">Content-Type</span><span class="s1">: </span><span class="s3">application/json</span>
+
+<span class="s5">###</span>
+<span class="s0">DELETE </span><span class="s1">http://localhost:8080/api/properties/P001</span>
+<span class="s2">X-User-Id</span><span class="s1">: </span><span class="s3">L002</span>
+
+<span class="s4">{ 
+  &quot;propertyId&quot;: &quot;P001&quot;, 
+  &quot;landlordId&quot;: &quot;L001&quot;, 
+  &quot;propertyType&quot;: &quot;Apartment&quot;, 
+  &quot;location&quot;: &quot;Kothrud&quot;, 
+  &quot;city&quot;: &quot;Pune&quot;, 
+  &quot;pincode&quot;: &quot;411038&quot;, 
+  &quot;bhk&quot;: 2, 
+  &quot;areaSqft&quot;: 1000, 
+  &quot;numberOfBathrooms&quot;: 2, 
+  &quot;monthlyRent&quot;: 27000, 
+  &quot;securityDeposit&quot;: 54000, 
+  &quot;floorNumber&quot;: 3, 
+  &quot;furnishingStatus&quot;: &quot;Fully Furnished&quot;, 
+  &quot;availableFrom&quot;: &quot;2026-10-01&quot;, 
+  &quot;propertyStatus&quot;: &quot;Available&quot; 
+}</span></pre>
+</body>
+</html>
