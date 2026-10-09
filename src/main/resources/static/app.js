@@ -5484,6 +5484,7 @@ async function loadAdminDashboard() {
     await loadAdminLandlords();
     await loadAdminTenants();
     await loadAdminProperties();
+    await loadAdminApplications();
 }
 
 
@@ -5685,7 +5686,103 @@ async function loadAdminProperties() {
     }
 }
 
+async function loadAdminApplications() {
 
+    const container =
+        document.getElementById("adminApplications");
+
+    container.innerHTML = "Loading...";
+
+
+    try {
+
+        const applications =
+            await apiFetch("/api/applications", {
+                method: "GET"
+            });
+
+
+        if (!applications || applications.length === 0) {
+
+            container.innerHTML =
+                '<div class="empty">No applications found.</div>';
+
+            return;
+        }
+
+
+        container.innerHTML = `
+            <div class="table-wrapper">
+
+                <table class="data-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Application ID</th>
+                            <th>Tenant ID</th>
+                            <th>Property ID</th>
+                            <th>Application Date</th>
+                            <th>Move-In Date</th>
+                            <th>Occupants</th>
+                            <th>Status</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        ${applications.map(app => `
+
+                            <tr>
+
+                                <td>
+                                    ${safe(app.applicationId)}
+                                </td>
+
+                                <td>
+                                    ${safe(app.tenantId)}
+                                </td>
+
+                                <td>
+                                    ${safe(app.propertyId)}
+                                </td>
+
+                                <td>
+                                    ${safe(app.applicationDate)}
+                                </td>
+
+                                <td>
+                                    ${safe(app.proposedMoveInDate)}
+                                </td>
+
+                                <td>
+                                    ${safe(app.numberOfOccupants)}
+                                </td>
+
+                                <td>
+                                    ${statusBadge(app.applicationStatus)}
+                                </td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+    } catch (error) {
+
+        container.innerHTML =
+            `<div class="error">${safe(error.message)}</div>`;
+
+    }
+}
 // UTILITY FUNCTIONS
 function formatNumber(value) {
     if (value === null || value === undefined) {
