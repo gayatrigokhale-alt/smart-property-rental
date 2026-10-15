@@ -1,5 +1,6 @@
 package com.rental.smart_property_rental.service;
 
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.springframework.data.mongodb.core.query.Query;
@@ -50,4 +51,21 @@ public class PropertyMediaService {
 
         return gridFsTemplate.getResource(file);
     }
+
+    public void deleteFile(String fileId) {
+        if (fileId == null || !ObjectId.isValid(fileId)) {
+            throw new IllegalArgumentException("Invalid file ID");
+        }
+
+        Query query = new Query(
+                where("_id").is(new ObjectId(fileId))
+        );
+
+        GridFSFile file = gridFsTemplate.findOne(query);
+
+        if (file != null) {
+            gridFsTemplate.delete(query);
+        }
+    }
+
 }

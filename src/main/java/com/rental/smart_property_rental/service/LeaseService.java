@@ -1,16 +1,16 @@
+
 package com.rental.smart_property_rental.service;
 
+import com.rental.smart_property_rental.repository.PaymentRepository;
 import com.rental.smart_property_rental.model.Application;
 import com.rental.smart_property_rental.model.Lease;
 import com.rental.smart_property_rental.model.Property;
 import com.rental.smart_property_rental.model.TenantPreference;
-
 import com.rental.smart_property_rental.repository.ApplicationRepository;
 import com.rental.smart_property_rental.repository.LandlordRepository;
 import com.rental.smart_property_rental.repository.LeaseRepository;
 import com.rental.smart_property_rental.repository.PropertyRepository;
 import com.rental.smart_property_rental.repository.TenantPreferenceRepository;
-
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,6 +19,7 @@ import java.util.List;
 @Service
 public class LeaseService {
 
+    private final PaymentRepository paymentRepository;
     private final LeaseRepository leaseRepository;
     private final ApplicationRepository applicationRepository;
     private final PropertyRepository propertyRepository;
@@ -26,12 +27,14 @@ public class LeaseService {
     private final TenantPreferenceRepository tenantPreferenceRepository;
 
     public LeaseService(
+            PaymentRepository paymentRepository,
             LeaseRepository leaseRepository,
             ApplicationRepository applicationRepository,
             PropertyRepository propertyRepository,
             LandlordRepository landlordRepository,
             TenantPreferenceRepository tenantPreferenceRepository) {
 
+        this.paymentRepository = paymentRepository;
         this.leaseRepository = leaseRepository;
         this.applicationRepository = applicationRepository;
         this.propertyRepository = propertyRepository;
@@ -39,513 +42,360 @@ public class LeaseService {
         this.tenantPreferenceRepository = tenantPreferenceRepository;
     }
 
-    /*
-     * CREATE LEASE AUTOMATICALLY
-     * This method is called only when a landlord approves an application.
-     *
-     * The lease receives:
-     * - Start_Date from the application's proposed move-in date.
-     * - End_Date from the start date + minimum lease duration.
-     *
-     * IMPORTANT:
-     * The End_Date is only stored as part of the lease.
-     * It does NOT automatically expire the lease.
-     */
-    public Lease createLeaseFromApprovedApplication(
-            String applicationId,
-            String userId) {
 
-        if (userId == null || userId.isBlank()) {
-            throw new RuntimeException("User ID is required");
-        }
 
-        // Landlord must be verified.
-        requireVerifiedLandlord(userId);
-
-        Application application =
-                applicationRepository
-                        .findByApplicationId(applicationId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Application not found"
-                                ));
-
-        /*
-         * A lease can only be generated from
-         * an approved application.
-         */
-        if (!"Approved".equalsIgnoreCase(
-                application.getApplicationStatus())) {
-
-            throw new RuntimeException(
-                    "Lease can only be created for an approved application"
-            );
-        }
-
-        Property property =
-                propertyRepository
-                        .findByPropertyId(
-                                application.getPropertyId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
-
-        /*
-         * Only the landlord who owns the property
-         * can generate the lease.
-         */
-        if (!property.getLandlordId().equals(userId)) {
-
-            throw new RuntimeException(
-                    "You are not authorized to create this lease"
-            );
-        }
-
-        /*
-         * Prevent duplicate leases for the same application.
-         */
-        if (leaseRepository
-                .findByApplicationId(
-                        application.getApplicationId()
-                )
-                .isPresent()) {
-
-            throw new RuntimeException(
-                    "A lease already exists for this application"
-            );
-        }
-
-        /*
-         * Get the tenant's lease preference.
-         */
-        TenantPreference preference =
-                tenantPreferenceRepository
-                        .findByTenantId(
-                                application.getTenantId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Tenant preferences not found"
-                                ));
-
-        /*
-         * The application's proposed move-in date
-         * becomes the lease start date.
-         */
-        String startDate =
-                application.getProposedMoveInDate();
-
-        if (startDate == null || startDate.isBlank()) {
-
-            throw new RuntimeException(
-                    "Lease start date is missing"
-            );
-        }
-
-        /*
-         * Lease duration is taken from
-         * TENANT_PREFERENCE.
-         */
-        Integer leaseDuration =
-                preference.getMinimumLeaseDuration();
-
-        if (leaseDuration == null ||
-                leaseDuration <= 0) {
-
-            throw new RuntimeException(
-                    "Valid lease duration is required"
-            );
-        }
-
-        /*
-         * Calculate the lease end date.
-         *
-         * This calculates and stores the contractual
-         * end date only.
-         *
-         * There is NO automatic expiry logic.
-         */
-        LocalDate start =
-                LocalDate.parse(startDate);
-
-        LocalDate end =
-                start.plusMonths(leaseDuration);
-
-        Lease lease = new Lease();
-
-        String leaseId =
-                generateLeaseId();
-
-        lease.setLeaseId(leaseId);
-
-        lease.setApplicationId(
-                application.getApplicationId()
-        );
-
-        lease.setTenantId(
-                application.getTenantId()
-        );
-
-        lease.setPropertyId(
-                application.getPropertyId()
-        );
-
-        // Lease dates.
-        lease.setStartDate(
-                start.toString()
-        );
-
-        lease.setEndDate(
-                end.toString()
-        );
-
-        /*
-         * Rent and security deposit are taken
-         * directly from the property.
-         */
-        lease.setMonthlyRent(
-                property.getMonthlyRent()
-        );
-
-        lease.setSecurityDeposit(
-                property.getSecurityDeposit()
-        );
-
-        lease.setLeaseStatus(
-                "Active"
-        );
-
-        return leaseRepository.save(lease);
-    }
-
-    // ============================================================
     // GET ALL LEASES
-    // ============================================================
-
     public List<Lease> getAllLeases() {
-
         return leaseRepository.findAll();
     }
 
-    // ============================================================
     // GET LEASE BY ID
-    // ============================================================
-
-    public Lease getLeaseById(
-            String leaseId) {
-
-        return leaseRepository
-                .findByLeaseId(leaseId)
+    public Lease getLeaseById(String leaseId) {
+        return leaseRepository.findByLeaseId(leaseId)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Lease not found"
-                        ));
+                        new RuntimeException("Lease not found"));
     }
 
-    // ============================================================
     // GET LEASES BY TENANT
-    // ============================================================
-
-    public List<Lease> getLeasesByTenant(
-            String tenantId) {
-
-        return leaseRepository
-                .findByTenantId(tenantId);
+    public List<Lease> getLeasesByTenant(String tenantId) {
+        return leaseRepository.findByTenantId(tenantId);
     }
 
-    // ============================================================
     // GET LEASES BY PROPERTY
-    // ============================================================
-
     public List<Lease> getLeasesByProperty(
             String propertyId,
             String userId) {
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(propertyId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
+        Property property = propertyRepository
+                .findByPropertyId(propertyId)
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
 
-        // Only property owner can view these leases.
         if (!property.getLandlordId().equals(userId)) {
-
             throw new RuntimeException(
-                    "You are not authorized to view leases for this property"
-            );
+                    "You are not authorized to view leases for this property");
         }
 
-        // Landlord must be verified.
         requireVerifiedLandlord(userId);
 
-        return leaseRepository
-                .findByPropertyId(propertyId);
+        return leaseRepository.findByPropertyId(propertyId);
     }
 
-    // ============================================================
     // UPDATE LEASE
-    // ============================================================
-
     public Lease updateLease(
             String leaseId,
             Lease updatedLease,
             String userId) {
 
-        Lease existingLease =
-                leaseRepository
-                        .findByLeaseId(leaseId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Lease not found"
-                                ));
+        Lease existingLease = leaseRepository.findByLeaseId(leaseId)
+                .orElseThrow(() ->
+                        new RuntimeException("Lease not found"));
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(
-                                existingLease.getPropertyId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
+        Property property = propertyRepository
+                .findByPropertyId(existingLease.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
 
-        // Only property owner can update lease.
         if (!property.getLandlordId().equals(userId)) {
-
             throw new RuntimeException(
-                    "You are not authorized to update this lease"
-            );
+                    "You are not authorized to update this lease");
         }
 
-        // Landlord must be verified.
         requireVerifiedLandlord(userId);
 
-        if (!"Active".equals(
-                existingLease.getLeaseStatus())) {
-
+        if (!"Active".equals(existingLease.getLeaseStatus())) {
             throw new RuntimeException(
-                    "Only an active lease can be updated"
-            );
+                    "Only an active lease can be updated");
         }
 
-        /*
-         * Only financial terms are updated here.
-         * Lease dates remain unchanged.
-         */
-        existingLease.setMonthlyRent(
-                updatedLease.getMonthlyRent()
-        );
-
+        existingLease.setMonthlyRent(updatedLease.getMonthlyRent());
         existingLease.setSecurityDeposit(
-                updatedLease.getSecurityDeposit()
-        );
+                updatedLease.getSecurityDeposit());
 
-        return leaseRepository.save(
-                existingLease
-        );
+        return leaseRepository.save(existingLease);
     }
 
-    // ============================================================
     // TERMINATE LEASE
-    // ============================================================
+    public Lease terminateLease(String leaseId, String userId) {
 
-    public Lease terminateLease(
-            String leaseId,
-            String userId) {
+        Lease existingLease = leaseRepository.findByLeaseId(leaseId)
+                .orElseThrow(() ->
+                        new RuntimeException("Lease not found"));
 
-        Lease existingLease =
-                leaseRepository
-                        .findByLeaseId(leaseId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Lease not found"
-                                ));
-
-        Property property =
-                propertyRepository
-                        .findByPropertyId(
-                                existingLease.getPropertyId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
+        Property property = propertyRepository
+                .findByPropertyId(existingLease.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
 
         if (!property.getLandlordId().equals(userId)) {
-
             throw new RuntimeException(
-                    "You are not authorized to terminate this lease"
-            );
+                    "You are not authorized to terminate this lease");
         }
 
-        // Landlord must be verified.
         requireVerifiedLandlord(userId);
 
-        if (!"Active".equals(
-                existingLease.getLeaseStatus())) {
-
+        if (!"Active".equals(existingLease.getLeaseStatus())) {
             throw new RuntimeException(
-                    "Only an active lease can be terminated"
-            );
+                    "Only an active lease can be terminated");
         }
 
-        existingLease.setLeaseStatus(
-                "Terminated"
-        );
+        existingLease.setLeaseStatus("Terminated");
+        existingLease.setTerminationDate(LocalDate.now().toString());
 
-        /*
-         * Record the date on which the landlord
-         * manually terminated the lease.
-         *
-         * This is NOT automatic expiry.
-         */
-        existingLease.setTerminationDate(
-                LocalDate.now().toString()
-        );
-
-        // Property becomes available again.
-        property.setPropertyStatus(
-                "Available"
-        );
-
+        property.setPropertyStatus("Available");
         propertyRepository.save(property);
 
-        return leaseRepository.save(
-                existingLease
-        );
+        return leaseRepository.save(existingLease);
     }
 
-    // ============================================================
     // COMPLETE LEASE
-    // ============================================================
+    public Lease completeLease(String leaseId, String userId) {
 
-    public Lease completeLease(
-            String leaseId,
-            String userId) {
+        Lease existingLease = leaseRepository.findByLeaseId(leaseId)
+                .orElseThrow(() ->
+                        new RuntimeException("Lease not found"));
 
-        Lease existingLease =
-                leaseRepository
-                        .findByLeaseId(leaseId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Lease not found"
-                                ));
-
-        Property property =
-                propertyRepository
-                        .findByPropertyId(
-                                existingLease.getPropertyId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
+        Property property = propertyRepository
+                .findByPropertyId(existingLease.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
 
         if (!property.getLandlordId().equals(userId)) {
-
             throw new RuntimeException(
-                    "You are not authorized to complete this lease"
-            );
+                    "You are not authorized to complete this lease");
         }
 
-        // Landlord must be verified.
         requireVerifiedLandlord(userId);
 
-        if (!"Active".equals(
-                existingLease.getLeaseStatus())) {
-
+        if (!"Active".equals(existingLease.getLeaseStatus())) {
             throw new RuntimeException(
-                    "Only an active lease can be completed"
-            );
+                    "Only an active lease can be completed");
         }
 
-        existingLease.setLeaseStatus(
-                "Completed"
-        );
-
-        /*
-         * Do NOT check End_Date here.
-         *
-         * Completion happens only because the landlord
-         * explicitly requested it.
-         */
-
-        // Property becomes available again.
-        property.setPropertyStatus(
-                "Available"
-        );
-
+        existingLease.setLeaseStatus("Completed");
+        property.setPropertyStatus("Available");
         propertyRepository.save(property);
 
-        return leaseRepository.save(
-                existingLease
-        );
+        return leaseRepository.save(existingLease);
     }
 
-    // ============================================================
     // CHECK LANDLORD VERIFICATION
-    // ============================================================
+    private boolean isLandlordVerified(String landlordId) {
 
-    private boolean isLandlordVerified(
-            String landlordId) {
-
-        if (landlordId == null ||
-                landlordId.isBlank()) {
-
+        if (landlordId == null || landlordId.isBlank()) {
             return false;
         }
 
-        return landlordRepository
-                .findByLandlordId(landlordId)
+        return landlordRepository.findByLandlordId(landlordId)
                 .map(landlord ->
                         "Verified".equalsIgnoreCase(
-                                landlord.getVerificationStatus()
-                        ))
+                                landlord.getVerificationStatus()))
                 .orElse(false);
     }
 
-    private void requireVerifiedLandlord(
-            String landlordId) {
-
+    private void requireVerifiedLandlord(String landlordId) {
         if (!isLandlordVerified(landlordId)) {
-
             throw new RuntimeException(
-                    "Landlord account is not verified"
-            );
+                    "Landlord account is not verified");
         }
     }
 
-    // ============================================================
     // GENERATE LEASE ID
-    // ============================================================
-
     private String generateLeaseId() {
 
-        long count =
-                leaseRepository.count() + 1;
+        long count = leaseRepository.count() + 1;
+        String leaseId = String.format("LEASE%03d", count);
 
-        String leaseId =
-                String.format(
-                        "LEASE%03d",
-                        count
-                );
-
-        while (leaseRepository
-                .existsByLeaseId(leaseId)) {
-
+        while (leaseRepository.existsByLeaseId(leaseId)) {
             count++;
-
-            leaseId =
-                    String.format(
-                            "LEASE%03d",
-                            count
-                    );
+            leaseId = String.format("LEASE%03d", count);
         }
 
         return leaseId;
+    }
+
+    // VALIDATE MOVE-IN DATE AGAINST PROPERTY AVAILABILITY
+    private void validateMoveInDate(
+            String startDate,
+            Property property) {
+
+        String availableFrom = property.getAvailableFrom();
+
+        if (availableFrom == null || availableFrom.isBlank()) {
+            throw new RuntimeException(
+                    "Property availability date is missing");
+        }
+
+        LocalDate moveInDate = LocalDate.parse(startDate);
+        LocalDate availabilityDate = LocalDate.parse(availableFrom);
+
+        if (moveInDate.isBefore(availabilityDate)) {
+            throw new RuntimeException(
+                    "Move-in date cannot be before the property's available date: "
+                            + availableFrom);
+        }
+    }
+
+    public void validateLeaseCanBeCreated(
+            String applicationId,
+            String tenantId) {
+
+        // 1. Find the application
+        Application application = applicationRepository
+                .findByApplicationId(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
+
+        // 2. Verify tenant ownership
+        if (tenantId == null || tenantId.isBlank()
+                || !tenantId.equals(application.getTenantId())) {
+            throw new RuntimeException(
+                    "You are not authorized to create a lease for this application");
+        }
+
+        // 3. Application must be approved
+        if (!"Approved".equalsIgnoreCase(
+                application.getApplicationStatus())) {
+            throw new RuntimeException(
+                    "A lease can be created only for an approved application");
+        }
+
+        // 4. Prevent duplicate leases
+        if (leaseRepository.findByApplicationId(applicationId).isPresent()) {
+            throw new RuntimeException(
+                    "A lease already exists for this application");
+        }
+
+        // 5. Find the property
+        Property property = propertyRepository
+                .findByPropertyId(application.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
+
+        // 6. Property must be reserved
+        if (!"Reserved".equalsIgnoreCase(property.getPropertyStatus())) {
+            throw new RuntimeException(
+                    "Property is not reserved for this application");
+        }
+
+        // 7. Validate the proposed move-in date
+        String moveInDate = application.getProposedMoveInDate();
+
+        if (moveInDate == null || moveInDate.isBlank()) {
+            throw new RuntimeException(
+                    "Proposed move-in date is required");
+        }
+
+        validateMoveInDate(moveInDate, property);
+
+        // 8. Validate the tenant's lease duration preference
+        TenantPreference preference = tenantPreferenceRepository
+                .findByTenantId(tenantId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Tenant preference not found"));
+
+        if (preference.getMinimumLeaseDuration() <= 0) {
+            throw new RuntimeException(
+                    "Minimum lease duration must be greater than zero");
+        }
+
+        // 9. Validate the property's rent and security deposit
+        if (property.getMonthlyRent() == null
+                || property.getSecurityDeposit() == null
+                || property.getMonthlyRent() < 0
+                || property.getSecurityDeposit() < 0) {
+            throw new RuntimeException(
+                    "Property rent or security deposit is invalid");
+        }
+    }
+
+    // CREATE LEASE AFTER SUCCESSFUL PAYMENT
+    public Lease createLeaseAfterSuccessfulPayment(
+            String applicationId,
+            String tenantId) {
+
+        Application application = applicationRepository
+                .findByApplicationId(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
+
+        if (tenantId == null || tenantId.isBlank()
+                || !tenantId.equals(application.getTenantId())) {
+            throw new RuntimeException(
+                    "You are not authorized to create this lease");
+        }
+
+        if (!"Approved".equalsIgnoreCase(
+                application.getApplicationStatus())) {
+            throw new RuntimeException("Application must be approved");
+        }
+
+        var existingLease = leaseRepository
+                .findByApplicationId(applicationId);
+
+        if (existingLease.isPresent()) {
+            return existingLease.get();
+        }
+
+        paymentRepository.findByApplicationIdAndPaymentStatus(
+                        applicationId, "Successful")
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Successful payment is required"));
+
+        Property property = propertyRepository
+                .findByPropertyId(application.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
+
+        if (!"Reserved".equalsIgnoreCase(
+                property.getPropertyStatus())) {
+            throw new RuntimeException(
+                    "Property is not reserved for this application");
+        }
+
+        TenantPreference preference = tenantPreferenceRepository
+                .findByTenantId(application.getTenantId())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Tenant preferences not found"));
+
+        String startDate = application.getProposedMoveInDate();
+
+        if (startDate == null || startDate.isBlank()) {
+            throw new RuntimeException("Lease start date is missing");
+        }
+
+        // NEW: Validate move-in date against property availability.
+        validateMoveInDate(startDate, property);
+
+        Integer duration = preference.getMinimumLeaseDuration();
+
+        if (duration == null || duration <= 0) {
+            throw new RuntimeException(
+                    "Valid lease duration is required");
+        }
+
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = start.plusMonths(duration);
+
+        Lease lease = new Lease();
+        lease.setLeaseId(generateLeaseId());
+        lease.setApplicationId(application.getApplicationId());
+        lease.setTenantId(application.getTenantId());
+        lease.setPropertyId(application.getPropertyId());
+        lease.setStartDate(start.toString());
+        lease.setEndDate(end.toString());
+        lease.setMonthlyRent(property.getMonthlyRent());
+        lease.setSecurityDeposit(property.getSecurityDeposit());
+        lease.setLeaseStatus("Active");
+
+        Lease savedLease = leaseRepository.save(lease);
+
+        property.setPropertyStatus("Rented");
+        propertyRepository.save(property);
+
+        return savedLease;
     }
 }

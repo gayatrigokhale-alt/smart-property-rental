@@ -43,14 +43,11 @@ public class PropertyMediaController {
                     .body("Login required.");
         }
 
+        Property property = getOwnedProperty(propertyId, userId);
+
         String fileId =
                 propertyMediaService.storeFile(file);
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(propertyId)
-                        .orElseThrow(() ->
-                                new RuntimeException("Property not found"));
 
         property.getImageFileIds().add(fileId);
 
@@ -84,11 +81,7 @@ public class PropertyMediaController {
             return ResponseEntity.status(401).build();
         }
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(propertyId)
-                        .orElseThrow(() ->
-                                new RuntimeException("Property not found"));
+        Property property = getOwnedProperty(propertyId, userId);
 
         List<String> fileIds = new ArrayList<>();
 
@@ -117,11 +110,7 @@ public class PropertyMediaController {
             return ResponseEntity.status(401).build();
         }
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(propertyId)
-                        .orElseThrow(() ->
-                                new RuntimeException("Property not found"));
+        Property property = getOwnedProperty(propertyId, userId);
 
         String fileId =
                 propertyMediaService.storeFile(file);
@@ -132,4 +121,86 @@ public class PropertyMediaController {
 
         return ResponseEntity.ok(fileId);
     }
+    private Property getOwnedProperty(String propertyId, String userId) {
+
+        Property property = propertyRepository
+                .findByPropertyId(propertyId)
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
+
+        if (!userId.equals(property.getLandlordId())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "You can only upload media to your own properties."
+            );
+        }
+
+        return property;
+    }
+
+    @DeleteMapping("/{propertyId}/images/{fileId}")
+    public ResponseEntity<String> deleteImage(
+            @PathVariable String propertyId,
+            @PathVariable String fileId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity.status(401).body("Login required.");
+        }
+
+        Property property = getOwnedProperty(propertyId, userId);
+
+        if (property.getImageFileIds() == null
+                || !property.getImageFileIds().contains(fileId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        property.getImageFileIds().remove(fileId);
+        propertyRepository.save(property);
+
+        boolean stillUsed = propertyRepository.findAll().stream()
+                .anyMatch(p ->
+                        (p.getImageFileIds() != null
+                                && p.getImageFileIds().contains(fileId))
+                                || fileId.equals(p.getVideoFileId()));
+
+        if (!stillUsed) {
+            propertyMediaService.deleteFile(fileId);
+        }
+
+        return ResponseEntity.ok("Photo removed successfully.");
+    }
+
+    @DeleteMapping("/{propertyId}/video")
+    public ResponseEntity<String> deleteVideo(
+            @PathVariable String propertyId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity.status(401).body("Login required.");
+        }
+
+        Property property = getOwnedProperty(propertyId, userId);
+        String fileId = property.getVideoFileId();
+
+        if (fileId == null || fileId.isBlank()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        property.setVideoFileId(null);
+        propertyRepository.save(property);
+
+        boolean stillUsed = propertyRepository.findAll().stream()
+                .anyMatch(p ->
+                        (p.getImageFileIds() != null
+                                && p.getImageFileIds().contains(fileId))
+                                || fileId.equals(p.getVideoFileId()));
+
+        if (!stillUsed) {
+            propertyMediaService.deleteFile(fileId);
+        }
+
+        return ResponseEntity.ok("Video removed successfully.");
+    }
+
 }

@@ -49,13 +49,24 @@
                         placeholder="Enter your email"
                 >
 
+
                 <label for="loginPassword">Password</label>
 
-                <input
-                        type="password"
-                        id="loginPassword"
-                        placeholder="Enter your password"
-                >
+                <div class="password-wrapper">
+                    <input
+                            type="password"
+                            id="loginPassword"
+                            placeholder="Enter your password"
+                    >
+                    <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('loginPassword', this)"
+                            aria-label="Show password"
+                            title="Show password"
+                    >👁</button>
+                </div>
+
 
                 <button
                         type="button"
@@ -278,15 +289,26 @@
 
                 <div class="form-group">
 
+
                     <label for="registerPassword">
                         Password
                     </label>
 
-                    <input
-                            type="password"
-                            id="registerPassword"
-                            placeholder="Enter password"
-                    >
+                    <div class="password-wrapper">
+                        <input
+                                type="password"
+                                id="registerPassword"
+                                placeholder="Enter password"
+                        >
+                        <button
+                                type="button"
+                                class="password-toggle"
+                                onclick="togglePassword('registerPassword', this)"
+                                aria-label="Show password"
+                                title="Show password"
+                        >👁</button>
+                    </div>
+
 
                 </div>
 
@@ -379,16 +401,29 @@
                             placeholder="Enter phone number">
                 </div>
 
+
                 <div class="form-group full-width">
                     <label for="landlordRegisterPassword">
                         Password
                     </label>
 
-                    <input
-                            type="password"
-                            id="landlordRegisterPassword"
-                            placeholder="Enter password">
+                    <div class="password-wrapper">
+                        <input
+                                type="password"
+                                id="landlordRegisterPassword"
+                                placeholder="Enter password"
+                        >
+                        <button
+                                type="button"
+                                class="password-toggle"
+                                onclick="togglePassword('landlordRegisterPassword', this)"
+                                aria-label="Show password"
+                                title="Show password"
+                        >👁</button>
+                    </div>
                 </div>
+
+
 
                 <div class="registration-actions">
 
@@ -710,6 +745,49 @@
             </div>
 
 
+            <!-- PAYMENTS -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>My Payments</h2>
+                        <p>
+                            View your rental payments and complete simulated payments
+                            for approved applications.
+                        </p>
+                    </div>
+
+                    <button
+                            type="button"
+                            onclick="loadTenantPayments()"
+                            class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="tenantPayments">
+                    Loading...
+                </div>
+
+            </div>
+
+            <!-- SIMULATED PAYMENT CHECKOUT -->
+            <div id="paymentCheckout" class="section-card hidden">
+                <div class="section-title-row">
+                    <div>
+                        <h2>Complete Your Payment</h2>
+                        <p>Demo checkout — no real money will be transferred.</p>
+                    </div>
+                    <button type="button"
+                            class="secondary-btn small-btn"
+                            onclick="closePaymentCheckout()">
+                        Close
+                    </button>
+                </div>
+
+                <div id="paymentCheckoutContent"></div>
+            </div>
+
             <!-- LEASES -->
             <div class="section-card">
 
@@ -870,6 +948,73 @@
                 </div>
 
             </div>
+
+            <!-- MANAGE PROPERTY MEDIA -->
+            <div class="section-card" id="managePropertyMedia">
+
+                <h2>Manage Property Media</h2>
+                <p>Add photos or replace the video for your properties.</p>
+
+                <div class="property-edit-form">
+
+                    <div class="form-group">
+                        <label for="mediaPropertySelect">Select Property</label>
+                        <select id="mediaPropertySelect" onchange="loadSelectedPropertyMedia()">
+                            <option value="">Loading properties...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalPropertyImages">Add Photos</label>
+                        <input
+                                type="file"
+                                id="additionalPropertyImages"
+                                accept="image/*"
+                                multiple
+                        />
+                        <small>Choose one or more image files.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="replacementPropertyVideo">Add or Replace Video</label>
+                        <input
+                                type="file"
+                                id="replacementPropertyVideo"
+                                accept="video/*"
+                        />
+                        <small>Select a new video to replace the current one.</small>
+                    </div>
+
+                </div>
+
+                <div class="property-form-actions">
+                    <button
+                            type="button"
+                            class="primary-btn"
+                            onclick="uploadPropertyMedia()"
+                    >
+                        Upload Media
+                    </button>
+                </div>
+
+                <!-- CURRENT PROPERTY MEDIA -->
+                <div class="current-property-media">
+                    <h3>Current Photos</h3>
+                    <div id="currentPropertyImages">
+                        Select a property to view its photos.
+                    </div>
+
+                    <h3>Current Video</h3>
+                    <div id="currentPropertyVideo">
+                        Select a property to view its video.
+                    </div>
+                </div>
+                <!-- END CURRENT PROPERTY MEDIA -->
+
+                <p id="propertyMediaMessage" class="message"></p>
+
+            </div>
+            <!-- END MANAGE PROPERTY MEDIA -->
 
             <!-- APPLICATIONS -->
             <div class="section-card">
@@ -1217,11 +1362,39 @@
 
             </div>
 
+
+            <!-- ADMIN LEASES -->
+            <div class="section-card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h2>All Leases</h2>
+                        <p>View all leases in the rental system.</p>
+                    </div>
+
+                    <button
+                            type="button"
+                            onclick="loadAdminLeases()"
+                            class="secondary-btn small-btn">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="adminLeases">
+                    Loading...
+                </div>
+
+            </div>
+
+
         </main>
 
     </section>
 
 </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 
 <!-- JAVASCRIPT -->

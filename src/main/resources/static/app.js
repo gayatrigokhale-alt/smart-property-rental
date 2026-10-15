@@ -799,6 +799,7 @@ async function loadTenantDashboard() {
     await loadAvailableProperties();
     await loadTenantApplications();
     await loadTenantLeases();
+    await loadTenantPayments();
 }
 
 
@@ -1218,7 +1219,13 @@ function showAddTenantPreferences() {
      </div>
      <div class="form-group">
        <label>Minimum Bathrooms</label>
-       <input type="number" id="prefBathrooms" min="1" max="20" placeholder="e.g. 2">
+       <input
+    type="number"
+    id="prefBathrooms"
+    min="1"
+    max="20"
+    oninput="if (this.value > 20) this.value = 20"
+    placeholder="e.g. 2">
      </div>
      <div class="form-group">
        <label>Number of Occupants</label>
@@ -1497,11 +1504,12 @@ async function showEditTenantPreferences() {
                     <label>Minimum Bathrooms</label>
 
                     <input
-                        type="number"
-                        id="prefBathrooms"
-                        value="${safe(preference.minimumBathrooms)}"
-                        min="1"
-                        max="20">
+    type="number"
+    id="prefBathrooms"
+    min="1"
+    max="20"
+    oninput="if (this.value > 20) this.value = 20"
+    placeholder="e.g. 2">
                 </div>
 
                 <div class="form-group">
@@ -2189,64 +2197,329 @@ async function applyForProperty(propertyId) {
 
 
 // TENANT APPLICATIONS
+
 async function loadTenantApplications() {
     const container = document.getElementById("tenantApplications");
     container.innerHTML = "Loading...";
 
-
     try {
-        const applications = await apiFetch(`/api/applications/tenant/${currentUser.userId}`, {
-            method: "GET"
-        });
-
+        const [applications, payments] = await Promise.all([
+            apiFetch(
+                `/api/applications/tenant/${encodeURIComponent(currentUser.userId)}`
+            ),
+            apiFetch(
+                `/api/payments/tenant/${encodeURIComponent(currentUser.userId)}`
+            )
+        ]);
 
         if (!applications || applications.length === 0) {
-            container.innerHTML = '<div class="empty">No applications found.</div>';
+            container.innerHTML =
+                '<div class="empty">No applications found.</div>';
             return;
         }
 
+        const paymentList = Array.isArray(payments) ? payments : [];
 
         container.innerHTML = `
-     <div class="table-wrapper">
-       <table class="data-table">
-         <thead>
-           <tr>
-             <th>Application</th>
-             <th>Tenant</th>
-             <th>Property</th>
-             <th>Move-In</th>
-             <th>Occupants</th>
-             <th>Status</th>
-             <th>Action</th>
-           </tr>
-         </thead>
-         <tbody>
-           ${applications.map(app => `
-             <tr>
-               <td>${safe(app.applicationId)}</td>
-               <td>${safe(app.tenantId)}</td>
-               <td>${safe(app.propertyId)}</td>
-               <td>${safe(app.proposedMoveInDate)}</td>
-               <td>${safe(app.numberOfOccupants)}</td>
-               <td>${statusBadge(app.applicationStatus)}</td>
-               <td>
-                 ${
-            app.applicationStatus === "Pending"
-                ? `<button class="reject-btn" onclick="withdrawApplication('${safe(app.applicationId)}')">Withdraw</button>`
-                : "-"
-        }
-               </td>
-             </tr>
-           `).join("")}
-         </tbody>
-       </table>
-     </div>
-   `;
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Application</th>
+                            <th>Tenant</th>
+                            <th>Property</th>
+                            <th>Move-In</th>
+                            <th>Occupants</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${applications.map(app => {
+            const existingPayment = paymentList.find(
+                p => p.applicationId === app.applicationId &&
+                    String(p.paymentStatus || "").toLowerCase()
+                    === "successful"
+            );
+
+            let action = "-";
+
+            if (existingPayment) {
+                action = `
+                                    <span class="status status-approved">
+                                        Paid
+                                    </span>`;
+            } else if (app.applicationStatus === "Approved") {
+                action = `
+                                    <button
+                                        type="button"
+                                        class="primary-btn small-btn"
+                                        onclick="startPayment(
+                                            '${safe(app.applicationId)}'
+                                        )">
+                                        Pay Now
+                                    </button>`;
+            } else if (app.applicationStatus === "Pending") {
+                action = `
+                                    <button
+                                        type="button"
+                                        class="reject-btn"
+                                        onclick="withdrawApplication(
+                                            '${safe(app.applicationId)}'
+                                        )">
+                                        Withdraw
+                                    </button>`;
+            }
+
+            return `
+                                <tr>
+                                    <td>${safe(app.applicationId)}</td>
+                                    <td>${safe(app.tenantId)}</td>
+                                    <td>${safe(app.propertyId)}</td>
+                                    <td>${safe(app.proposedMoveInDate)}</td>
+                                    <td>${safe(app.numberOfOccupants)}</td>
+                                    <td>${statusBadge(app.applicationStatus)}</td>
+                                    <td>${action}</td>
+                                </tr>`;
+        }).join("")}
+                    </tbody>
+                </table>
+            </div>`;
     } catch (error) {
-        container.innerHTML = `<div class="error">${safe(error.message)}</div>`;
+        container.innerHTML =
+            `<div class="error">${safe(error.message)}</div>`;
     }
 }
 
+let currentCheckoutPayment = null;
+
+async function startPayment(applicationId) {
+    const checkout = document.getElementById("paymentCheckout");
+    const content = document.getElementById("paymentCheckoutContent");
+
+    checkout.classList.remove("hidden");
+    content.innerHTML = "<p>Preparing checkout...</p>";
+    checkout.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    try {
+        // Avoid starting a second payment if this application is already paid.
+        const payments = await apiFetch(
+            `/api/payments/tenant/${encodeURIComponent(currentUser.userId)}`
+        );
+
+        const alreadyPaid = Array.isArray(payments) && payments.some(
+            p => p.applicationId === applicationId &&
+                String(p.paymentStatus || "").toLowerCase() === "successful"
+        );
+
+        if (alreadyPaid) {
+            content.innerHTML =
+                '<p class="success">This application already has a successful payment.</p>';
+            await loadTenantApplications();
+            await loadTenantPayments();
+            return;
+        }
+
+        // Your existing Spring Boot initiation endpoint.
+        const payment = await apiFetch(
+            `/api/payments/initiate/${encodeURIComponent(applicationId)}`,
+            { method: "POST" }
+        );
+
+        currentCheckoutPayment = payment;
+
+        if (!payment || !payment.paymentId) {
+            throw new Error(
+                "The backend did not return a payment ID. Check the initiate endpoint response."
+            );
+        }
+
+        const amount = Number(payment.totalAmount);
+
+        content.innerHTML = `
+            <div class="profile-grid">
+                <div class="profile-item">
+                    <span class="profile-label">Application</span>
+                    <span class="profile-value">${safe(applicationId)}</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Payment ID</span>
+                    <span class="profile-value">${safe(payment.paymentId)}</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Amount</span>
+                    <span class="profile-value">${
+            Number.isFinite(amount)
+                ? "₹" + amount.toLocaleString("en-IN")
+                : "Amount supplied by backend"
+        }</span>
+                </div>
+            </div>
+
+            <div class="section-card" style="text-align:center; margin-top:20px;">
+                <h3>Simulated Payment QR</h3>
+                <p>
+                    Demo only. This QR does not initiate a real UPI transfer.
+                </p>
+                <div id="paymentQrCode"
+                     style="display:flex; justify-content:center; padding:16px;">
+                </div>
+                <p>Payment reference: ${safe(payment.paymentId)}</p>
+            </div>
+
+            <div class="profile-form-actions">
+                <button type="button"
+                        class="primary-btn"
+                        id="simulateSuccessButton"
+                        onclick="completeSimulatedPayment('success')">
+                    Transfer
+                </button>
+
+
+            </div>
+
+            <p id="paymentCheckoutMessage" class="message"></p>
+        `;
+
+        // QR encodes demo reference information, not bank/payment credentials.
+        const qrContainer = document.getElementById("paymentQrCode");
+
+        if (typeof QRCode !== "undefined") {
+            new QRCode(qrContainer, {
+                text: `SMART-RENTAL-DEMO|Application:${applicationId}|Payment:${payment.paymentId}|Amount:${Number.isFinite(amount) ? amount : "See website"}`,
+                width: 190,
+                height: 190
+            });
+        } else {
+            qrContainer.innerHTML =
+                "<p>QR library unavailable. You can still use the demo buttons below.</p>";
+        }
+    } catch (error) {
+        content.innerHTML =
+            `<div class="error">${safe(error.message)}</div>`;
+    }
+}
+
+
+async function completeSimulatedPayment() {
+    if (!currentCheckoutPayment || !currentCheckoutPayment.paymentId) {
+        alert("Please start checkout first.");
+        return;
+    }
+
+    const paymentId = currentCheckoutPayment.paymentId;
+    const message = document.getElementById("paymentCheckoutMessage");
+    const successButton = document.getElementById("simulateSuccessButton");
+
+    if (!successButton || successButton.disabled) {
+        return;
+    }
+
+    successButton.disabled = true;
+    successButton.textContent = "Processing Payment...";
+
+    message.textContent = "Processing demo payment...";
+    message.className = "message";
+
+    try {
+        await apiFetch(
+            `/api/payments/${encodeURIComponent(paymentId)}/simulate-success`,
+            { method: "POST" }
+        );
+
+        message.textContent =
+            "Payment successful! Your payment record has been updated.";
+        message.classList.add("success");
+
+        await loadTenantPayments();
+        await loadTenantApplications();
+        await loadTenantLeases();
+
+        currentCheckoutPayment = null;
+
+        successButton.textContent = "Payment Successful";
+    } catch (error) {
+        message.textContent = error.message;
+        message.classList.add("error");
+
+        successButton.disabled = false;
+        successButton.textContent = "Transfer";
+    }
+}
+
+
+function closePaymentCheckout() {
+    document.getElementById("paymentCheckout").classList.add("hidden");
+    document.getElementById("paymentCheckoutContent").innerHTML = "";
+    currentCheckoutPayment = null;
+}
+
+// LOAD TENANT PAYMENT HISTORY
+async function loadTenantPayments() {
+    const container = document.getElementById("tenantPayments");
+
+    if (!container || !currentUser || !currentUser.userId) {
+        return;
+    }
+
+    container.innerHTML = "<p>Loading payment history...</p>";
+
+    try {
+        const payments = await apiFetch(
+            `/api/payments/tenant/${encodeURIComponent(currentUser.userId)}`
+        );
+
+        if (!Array.isArray(payments) || payments.length === 0) {
+            container.innerHTML = "<p>No payment records found.</p>";
+            return;
+        }
+
+        container.innerHTML = `
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Property ID</th>
+                            <th>Payment Date</th>
+                            <th>Method</th>
+                            <th>Total Amount</th>
+                            <th>Transaction ID</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${payments.map(payment => {
+            const paymentDate = payment.paymentDate
+                ? new Date(payment.paymentDate).toLocaleString()
+                : "—";
+
+            const amount = Number(payment.totalAmount);
+
+            return `
+                                <tr>
+                                    <td>${safe(payment.paymentId ?? "—")}</td>
+                                    <td>${safe(payment.propertyId ?? "—")}</td>
+                                    <td>${safe(paymentDate)}</td>
+                                    <td>${safe(payment.paymentMethod ?? "—")}</td>
+                                    <td>${Number.isFinite(amount)
+                ? "₹" + amount.toLocaleString("en-IN")
+                : "—"}</td>
+                                    <td>${safe(payment.transactionId ?? "—")}</td>
+                                    <td>${statusBadge(payment.paymentStatus ?? "Unknown")}</td>
+                                </tr>
+                            `;
+        }).join("")}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        console.error("Error loading payment history:", error);
+        container.innerHTML =
+            "<p>Unable to load payment history. Please try again.</p>";
+    }
+}
 
 // TENANT LEASES
 async function loadTenantLeases() {
@@ -2306,6 +2579,7 @@ async function loadTenantLeases() {
 async function loadLandlordDashboard() {
     await loadLandlordProfile();
     await loadLandlordProperties();
+    await loadMediaPropertyOptions();
     await loadLandlordApplications();
     await loadLandlordLeases();
 }
@@ -2752,6 +3026,266 @@ async function deleteLandlordAccount() {
         );
     }
 }
+
+async function loadMediaPropertyOptions() {
+    const select = document.getElementById("mediaPropertySelect");
+    const message = document.getElementById("propertyMediaMessage");
+
+    if (!select || currentUser.role !== "landlord") {
+        return;
+    }
+
+    try {
+        const properties = await apiFetch(
+            `/api/properties/landlord/${encodeURIComponent(currentUser.userId)}`,
+            { method: "GET" }
+        );
+
+        select.innerHTML = '<option value="">Select a property</option>';
+
+        (properties || []).forEach(property => {
+            const option = document.createElement("option");
+            option.value = property.propertyId;
+            option.textContent =
+                `${property.propertyId} — ${property.propertyType}, ${property.city}`;
+            select.appendChild(option);
+        });
+
+        if (!properties || properties.length === 0) {
+            select.innerHTML = '<option value="">No properties found</option>';
+        }
+    } catch (error) {
+        select.innerHTML = '<option value="">Could not load properties</option>';
+        if (message) {
+            message.textContent = error.message;
+        }
+    }
+}
+
+async function loadSelectedPropertyMedia() {
+    const propertyId =
+        document.getElementById("mediaPropertySelect").value;
+
+    const imagesContainer =
+        document.getElementById("currentPropertyImages");
+
+    const videoContainer =
+        document.getElementById("currentPropertyVideo");
+
+    if (!propertyId) {
+        imagesContainer.textContent = "Select a property to view its photos.";
+        videoContainer.textContent = "Select a property to view its video.";
+        return;
+    }
+
+    try {
+        const properties = await apiFetch(
+            `/api/properties/landlord/${encodeURIComponent(currentUser.userId)}`,
+            { method: "GET" }
+        );
+
+        const property = (properties || []).find(
+            p => p.propertyId === propertyId
+        );
+
+        if (!property) {
+            throw new Error("Property not found.");
+        }
+
+        const imageIds = property.imageFileIds || [];
+
+        if (imageIds.length === 0) {
+            imagesContainer.innerHTML = "<p>No photos uploaded.</p>";
+        } else {
+            imagesContainer.innerHTML = imageIds.map(imageId => `
+                <div class="managed-media-item">
+                    <img
+                        src="/api/properties/media/${encodeURIComponent(imageId)}"
+                        alt="Property photo"
+                        class="managed-media-image"
+                    >
+                    <button
+                        type="button"
+                        class="danger-btn small-btn"
+                        onclick="removePropertyImage('${propertyId}', '${imageId}')">
+                        Remove Photo
+                    </button>
+                </div>
+            `).join("");
+        }
+
+        if (property.videoFileId) {
+            const videoId = property.videoFileId;
+
+            videoContainer.innerHTML = `
+                <div class="managed-media-item">
+                    <video
+                        class="managed-media-video"
+                        controls
+                        preload="metadata">
+                        <source
+                            src="/api/properties/media/${encodeURIComponent(videoId)}">
+                        Your browser does not support video playback.
+                    </video>
+                    <button
+                        type="button"
+                        class="danger-btn small-btn"
+                        onclick="removePropertyVideo('${propertyId}')">
+                        Remove Video
+                    </button>
+                </div>
+            `;
+        } else {
+            videoContainer.innerHTML = "<p>No video uploaded.</p>";
+        }
+    } catch (error) {
+        imagesContainer.textContent =
+            "Could not load photos: " + error.message;
+        videoContainer.textContent =
+            "Could not load video: " + error.message;
+    }
+}
+
+
+async function removePropertyImage(propertyId, fileId) {
+    if (!confirm("Are you sure you want to remove this photo?")) {
+        return;
+    }
+
+    const message = document.getElementById("propertyMediaMessage");
+    message.textContent = "Removing photo...";
+    message.className = "message";
+
+    try {
+        await apiFetch(
+            `/api/properties/${encodeURIComponent(propertyId)}/images/${encodeURIComponent(fileId)}`,
+            { method: "DELETE" }
+        );
+
+        message.textContent = "Photo removed successfully!";
+        await loadSelectedPropertyMedia();
+        await loadLandlordProperties();
+    } catch (error) {
+        message.textContent = "Could not remove photo: " + error.message;
+        message.classList.add("error");
+    }
+}
+
+async function removePropertyVideo(propertyId) {
+    if (!confirm("Are you sure you want to remove this property's video?")) {
+        return;
+    }
+
+    const message = document.getElementById("propertyMediaMessage");
+    message.textContent = "Removing video...";
+    message.className = "message";
+
+    try {
+        await apiFetch(
+            `/api/properties/${encodeURIComponent(propertyId)}/video`,
+            { method: "DELETE" }
+        );
+
+        message.textContent = "Video removed successfully!";
+        await loadSelectedPropertyMedia();
+        await loadLandlordProperties();
+    } catch (error) {
+        message.textContent = "Could not remove video: " + error.message;
+        message.classList.add("error");
+    }
+}
+
+async function uploadPropertyMedia() {
+    const propertyId =
+        document.getElementById("mediaPropertySelect").value;
+
+    const imageInput =
+        document.getElementById("additionalPropertyImages");
+
+    const videoInput =
+        document.getElementById("replacementPropertyVideo");
+
+    const message =
+        document.getElementById("propertyMediaMessage");
+
+    const images = Array.from(imageInput.files);
+    const video = videoInput.files[0];
+
+    message.textContent = "";
+    message.className = "message";
+
+    if (!propertyId) {
+        message.textContent = "Please select a property.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (images.length === 0 && !video) {
+        message.textContent = "Please select photos or a video to upload.";
+        message.classList.add("error");
+        return;
+    }
+
+    if (currentUser.role !== "landlord" || !currentUser.userId) {
+        message.textContent = "Please log in as a landlord.";
+        message.classList.add("error");
+        return;
+    }
+
+    const uploadButton = document.querySelector(
+        '#managePropertyMedia button[onclick="uploadPropertyMedia()"]'
+    );
+
+    uploadButton.disabled = true;
+
+    try {
+        // Upload additional photos.
+        if (images.length > 0) {
+            const imageForm = new FormData();
+
+            images.forEach(file => {
+                imageForm.append("files", file);
+            });
+
+            await apiFetch(
+                `/api/properties/${encodeURIComponent(propertyId)}/images/multiple`,
+                {
+                    method: "POST",
+                    body: imageForm
+                }
+            );
+        }
+
+        // Upload or replace the property's video.
+        if (video) {
+            const videoForm = new FormData();
+            videoForm.append("file", video);
+
+            await apiFetch(
+                `/api/properties/${encodeURIComponent(propertyId)}/video`,
+                {
+                    method: "POST",
+                    body: videoForm
+                }
+            );
+        }
+
+        message.textContent = "Media uploaded successfully!";
+        imageInput.value = "";
+        videoInput.value = "";
+
+        // Refresh the property cards and their media.
+        await loadLandlordProperties();
+        await loadSelectedPropertyMedia();
+
+    } catch (error) {
+        message.textContent = "Upload failed: " + error.message;
+        message.classList.add("error");
+    } finally {
+        uploadButton.disabled = false;
+    }
+}
+
 // LANDLORD PROPERTIES
 async function loadLandlordProperties() {
     const container = document.getElementById("landlordProperties");
@@ -5485,6 +6019,7 @@ async function loadAdminDashboard() {
     await loadAdminTenants();
     await loadAdminProperties();
     await loadAdminApplications();
+    await loadAdminLeases();
 }
 
 
@@ -5537,7 +6072,7 @@ async function loadAdminLandlords() {
            ${landlords.map(landlord => `
              <tr>
                <td>${safe(landlord.landlordId)}</td>
-               <td>${safe(landlord.firstName)}${safe(landlord.lastName)}</td>
+               <td>${safe(landlord.firstName)} ${safe(landlord.lastName)}</td>
                <td>${safe(landlord.email)}</td>
                <td>${safe(landlord.phone)}</td>
                <td>${statusBadge(landlord.verificationStatus)}</td>
@@ -5617,7 +6152,7 @@ async function loadAdminTenants() {
            ${tenants.map(tenant => `
              <tr>
                <td>${safe(tenant.tenantId)}</td>
-               <td>${safe(tenant.firstName)}${safe(tenant.lastName)}</td>
+               <td>${safe(tenant.firstName)} ${safe(tenant.lastName)}</td>
                <td>${safe(tenant.email)}</td>
                <td>${safe(tenant.phone)}</td>
                <td>${safe(tenant.tenantType)}</td>
@@ -5783,6 +6318,64 @@ async function loadAdminApplications() {
 
     }
 }
+
+
+async function loadAdminLeases() {
+    const container = document.getElementById("adminLeases");
+    container.innerHTML = "Loading leases...";
+
+    try {
+        const leases = await apiFetch("/api/leases", {
+            method: "GET"
+        });
+
+        if (!leases || leases.length === 0) {
+            container.innerHTML =
+                '<div class="empty">No leases found.</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Lease ID</th>
+                            <th>Application ID</th>
+                            <th>Tenant ID</th>
+                            <th>Property ID</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Monthly Rent</th>
+                            <th>Security Deposit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        ${leases.map(lease => `
+                            <tr>
+                                <td>${safe(lease.leaseId)}</td>
+                                <td>${safe(lease.applicationId)}</td>
+                                <td>${safe(lease.tenantId)}</td>
+                                <td>${safe(lease.propertyId)}</td>
+                                <td>${safe(lease.startDate)}</td>
+                                <td>${safe(lease.endDate)}</td>
+                                <td>${formatNumber(lease.monthlyRent)}</td>
+                                <td>${formatNumber(lease.securityDeposit)}</td>
+                                <td>${statusBadge(lease.leaseStatus)}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML =
+            `<div class="error">${safe(error.message)}</div>`;
+    }
+}
+
 // UTILITY FUNCTIONS
 function formatNumber(value) {
     if (value === null || value === undefined) {
@@ -6108,7 +6701,28 @@ async function saveInitialAmenityPreferences() {
         message.textContent = error.message;
         message.classList.add("error");
     }
+
 }
+
+function togglePassword(inputId, button) {
+    const passwordInput = document.getElementById(inputId);
+
+    if (!passwordInput) return;
+
+    const isHidden = passwordInput.type === "password";
+    passwordInput.type = isHidden ? "text" : "password";
+
+    button.setAttribute(
+        "aria-label",
+        isHidden ? "Hide password" : "Show password"
+    );
+
+    button.setAttribute(
+        "title",
+        isHidden ? "Hide password" : "Show password"
+    );
+}
+
 
 
 

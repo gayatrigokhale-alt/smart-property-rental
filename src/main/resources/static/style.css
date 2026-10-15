@@ -1263,7 +1263,7 @@ button {
 
 .media-viewer-images img {
     width: 100%;
-    height: 300px;
+    height: 250px;
     object-fit: contain;
     background: #f8fafc;
     border-radius: 10px;
@@ -1278,3 +1278,98 @@ button {
     border-radius: 10px;
     display: block;
 }
+
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    box-sizing: border-box;
+    padding-right: 45px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    color: #333;
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+    border-radius: 4px;
+}
+
+/* Manage Property Media */
+.current-property-media {
+    margin-top: 24px;
+}
+
+.current-property-media h3 {
+    margin: 20px 0 12px;
+}
+
+#currentPropertyImages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.managed-media-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 240px;
+    margin-bottom: 16px;
+}
+
+.managed-media-image {
+    width: 220px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.managed-media-video {
+    width: 280px;
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+.managed-media-item .danger-btn {
+    margin-top: 4px;
+}
+
+/* Tenant amenity preferences — vertical layout */
+.amenity-selection .amenity-checkbox-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.amenity-selection .amenity-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    cursor: pointer;
+}
+
+.amenity-selection .amenity-checkbox input[type="checkbox"] {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+

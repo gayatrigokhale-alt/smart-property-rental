@@ -2223,3 +2223,434 @@ Content-Type: image/png
 
 < C:\Users\shri_\OneDrive\Pictures\Screenshots\Screenshot (50).png
 ------PropertyImages--
+
+
+### 1. Initiate payment for approved application APP022
+POST http://localhost:8080/api/payments/initiate/APP022
+X-User-Id: T006
+Content-Type: application/json
+
+
+
+### 2. Simulate successful payment for PAY001
+POST http://localhost:8080/api/payments/PAY001/simulate-success
+X-User-Id: T006
+Content-Type: application/json
+###
+POST http://localhost:8080/api/payments/initiate/APP001
+X-User-Id: TOO5
+
+###
+POST http://localhost:8080/api/payments/initiate/APP001
+X-User-Id: T006
+
+### Simulate successful payment
+POST http://localhost:8080/api/payments/PAY001/simulate-success
+X-User-Id: T006
+
+###
+POST http://localhost:8080/api/payments/PAY001/simulate-success
+X-User-Id: T006
+
+###
+POST http://localhost:8080/api/payments/initiate/APP002
+X-User-Id: T002
+
+###
+POST http://localhost:8080/api/payments/{paymentId}/simulate-failure
+X-User-Id: T002
+
+### Simulate failed payment for APP002
+POST http://localhost:8080/api/payments/PAY002/simulate-failure
+X-User-Id: T002
+
+### Try to complete a failed payment
+POST http://localhost:8080/api/payments/PAY002/simulate-success
+X-User-Id: T002
+
+###
+POST http://localhost:8080/api/applications
+X-User-Id: T005
+Content-Type: application/json
+
+{
+  "tenantId": "T005",
+  "propertyId": "P005"
+}
+
+###
+POST http://localhost:8080/api/applications
+X-User-Id: T001
+Content-Type: application/json
+
+{
+  "tenantId": "T001",
+  "propertyId": "P001"
+}
+
+
+###
+PUT http://localhost:8080/api/applications/APP003/status
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "status": "Approved"
+}
+
+###
+### Approve APP003
+PUT http://localhost:8080/api/applications/APP003/status
+X-User-Id: L001
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+
+
+###
+
+POST http://localhost:8080/api/payments/initiate/APP003
+X-User-Id: T001
+Content-Type: application/json
+
+
+###
+
+POST http://localhost:8080/api/payments/PAY003/simulate-success
+X-User-Id: T001
+
+
+###
+
+### Get payments for a tenant
+GET http://localhost:8080/api/payments/tenant/T001
+X-User-Id: T001
+
+
+###
+
+
+### 1. INITIATE PAYMENT
+### Replace APP004 with an existing approved, unpaid application.
+### Replace T001 if you are testing with another tenant.
+
+POST http://localhost:8080/api/payments/initiate/APP004
+X-User-Id: T001
+Content-Type: application/json
+
+
+### 2. SIMULATE SUCCESSFUL PAYMENT
+### After request 1, copy the paymentId from its response.
+### Replace PAY_NEW_SUCCESS with that payment ID.
+
+POST http://localhost:8080/api/payments/PAY_NEW_SUCCESS/simulate-success
+X-User-Id: T001
+Content-Type: application/json
+
+
+### 3. VERIFY PAYMENT HISTORY AFTER SUCCESS
+
+GET http://localhost:8080/api/payments/tenant/T001
+X-User-Id: T001
+
+
+### 4. VERIFY LEASES AFTER SUCCESS
+
+GET http://localhost:8080/api/leases/tenant/T001
+X-User-Id: T001
+
+
+### 5. INITIATE A SEPARATE PAYMENT FOR FAILURE TESTING
+### Replace APP005 with another approved, unpaid application.
+
+POST http://localhost:8080/api/payments/initiate/APP005
+X-User-Id: T001
+Content-Type: application/json
+
+
+### 6. SIMULATE FAILED PAYMENT
+### Copy the paymentId returned by request 5.
+### Replace PAY_NEW_FAILURE with that payment ID.
+
+POST http://localhost:8080/api/payments/PAY_NEW_FAILURE/simulate-failure
+X-User-Id: T001
+Content-Type: application/json
+
+
+### 7. VERIFY PAYMENT HISTORY AFTER FAILURE
+
+GET http://localhost:8080/api/payments/tenant/T001
+X-User-Id: T001
+
+
+### 8. VERIFY THAT FAILURE DID NOT CREATE A LEASE
+
+GET http://localhost:8080/api/leases/tenant/T001
+X-User-Id: T001
+
+
+
+### Find existing applications for T001
+GET http://localhost:8080/api/applications/tenant/T001
+X-User-Id: T001
+
+
+
+### Get all applications
+GET http://localhost:8080/api/applications
+X-User-Id: T001
+
+
+### Check payments for tenant T006
+GET http://localhost:8080/api/payments/tenant/T006
+X-User-Id: T006
+
+
+### Check payments for tenant T002
+GET http://localhost:8080/api/payments/tenant/T002
+X-User-Id: T002
+
+
+### Retry payment for approved application APP002
+POST http://localhost:8080/api/payments/initiate/APP002
+X-User-Id: T002
+Content-Type: application/json
+
+
+### Simulate successful payment for PAY004
+POST http://localhost:8080/api/payments/PAY004/simulate-success
+X-User-Id: T002
+
+
+
+### Verify T002 payment history
+GET http://localhost:8080/api/payments/tenant/T002
+X-User-Id: T002
+
+
+###
+GET http://localhost:8080/api/leases
+
+### Get payment history for tenant T039
+GET http://localhost:8080/api/payments/tenant/T039
+X-User-Id: T039
+Accept: application/json
+
+### TEST 1: Wrong landlord attempts to remove P006 image
+DELETE http://localhost:8080/api/properties/P006/images/6ac7f862c8bf5b264a43d0d3
+X-User-Id: L004
+
+
+### TEST 2: Correct landlord removes P006 image
+DELETE http://localhost:8080/api/properties/P006/images/6ac7f862c8bf5b264a43d0d3
+X-User-Id: L003
+
+
+
+### 1. T040 - Kunal Sawant -> P040
+POST http://localhost:8080/api/applications
+X-User-Id: T040
+Content-Type: application/json
+
+{
+  "tenantId": "T040",
+  "propertyId": "P040"
+}
+
+### 2. T039 - Pallavi Bhosale -> P039
+POST http://localhost:8080/api/applications
+X-User-Id: T039
+Content-Type: application/json
+
+{
+  "tenantId": "T039",
+  "propertyId": "P039"
+}
+
+### 3. T038 - Saurabh Kale -> P038
+POST http://localhost:8080/api/applications
+X-User-Id: T038
+Content-Type: application/json
+
+{
+  "tenantId": "T038",
+  "propertyId": "P038"
+}
+
+### 4. T037 - Kritika Mehta -> P037
+POST http://localhost:8080/api/applications
+X-User-Id: T037
+Content-Type: application/json
+
+{
+  "tenantId": "T037",
+  "propertyId": "P037"
+}
+
+### 5. T036 - Omkar Pawar -> P035
+POST http://localhost:8080/api/applications
+X-User-Id: T036
+Content-Type: application/json
+
+{
+  "tenantId": "T036",
+  "propertyId": "P035"
+}
+
+### 6. T035 - Shruti More -> P036
+POST http://localhost:8080/api/applications
+X-User-Id: T035
+Content-Type: application/json
+
+{
+  "tenantId": "T035",
+  "propertyId": "P036"
+}
+
+### 7. T034 - Rahul Gokhale -> P032
+POST http://localhost:8080/api/applications
+X-User-Id: T034
+Content-Type: application/json
+
+{
+  "tenantId": "T034",
+  "propertyId": "P032"
+}
+
+### 8. T033 - Aditi Bhatt -> P033
+POST http://localhost:8080/api/applications
+X-User-Id: T033
+Content-Type: application/json
+
+{
+  "tenantId": "T033",
+  "propertyId": "P033"
+}
+
+### 9. T032 - Nikhil Joshi -> P032
+POST http://localhost:8080/api/applications
+X-User-Id: T032
+Content-Type: application/json
+
+{
+  "tenantId": "T032",
+  "propertyId": "P032"
+}
+
+### 10. T031 - Divya Rao -> P033
+POST http://localhost:8080/api/applications
+X-User-Id: T031
+Content-Type: application/json
+
+{
+  "tenantId": "T031",
+  "propertyId": "P033"
+}
+
+
+
+### Reject APP009 — landlord L022
+PUT http://localhost:8080/api/applications/APP009/status
+X-User-Id: L022
+Content-Type: application/json
+
+{
+  "applicationStatus": "Rejected"
+}
+
+### Reject APP010 — landlord L023
+PUT http://localhost:8080/api/applications/APP010/status
+X-User-Id: L023
+Content-Type: application/json
+
+{
+  "applicationStatus": "Rejected"
+}
+
+
+
+### Approve APP001 — landlord L030
+PUT http://localhost:8080/api/applications/APP001/status
+X-User-Id: L030
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+
+### Approve APP002 — landlord L029
+PUT http://localhost:8080/api/applications/APP002/status
+X-User-Id: L029
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+
+### Approve APP003 — landlord L028
+PUT http://localhost:8080/api/applications/APP003/status
+X-User-Id: L028
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+
+### Approve APP004 — landlord L027
+PUT http://localhost:8080/api/applications/APP004/status
+X-User-Id: L027
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+
+### Approve APP005 — landlord L025
+PUT http://localhost:8080/api/applications/APP005/status
+X-User-Id: L025
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+
+### Approve APP006 — landlord L026
+PUT http://localhost:8080/api/applications/APP006/status
+X-User-Id: L026
+Content-Type: application/json
+
+{
+  "applicationStatus": "Approved"
+}
+
+
+
+### Payment for APP001 — tenant T040
+POST http://localhost:8080/api/payments/initiate/APP001
+X-User-Id: T040
+
+### Payment for APP002 — tenant T039
+POST http://localhost:8080/api/payments/initiate/APP002
+X-User-Id: T039
+
+### Payment for APP003 — tenant T038
+POST http://localhost:8080/api/payments/initiate/APP003
+X-User-Id: T038
+
+###
+
+POST http://localhost:8080/api/payments/PAY001/simulate-success
+X-User-Id: T040
+
+
+
+### Complete PAY002
+POST http://localhost:8080/api/payments/PAY002/simulate-success
+X-User-Id: T039
+
+### Complete PAY003
+POST http://localhost:8080/api/payments/PAY003/simulate-success
+X-User-Id: T038
+

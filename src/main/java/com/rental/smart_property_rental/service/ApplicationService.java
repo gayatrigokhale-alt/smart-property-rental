@@ -1,3 +1,4 @@
+
 package com.rental.smart_property_rental.service;
 
 import com.rental.smart_property_rental.model.Application;
@@ -42,502 +43,312 @@ public class ApplicationService {
         this.leaseService = leaseService;
     }
 
-    // ============================================================
     // GET ALL APPLICATIONS
-    // ============================================================
 
     public List<Application> getAllApplications() {
-
         return applicationRepository.findAll();
     }
 
-    // ============================================================
     // GET APPLICATION BY ID
-    // ============================================================
 
-    public Application getApplicationById(
-            String applicationId) {
-
+    public Application getApplicationById(String applicationId) {
         return applicationRepository
                 .findByApplicationId(applicationId)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Application not found"
-                        ));
+                        new RuntimeException("Application not found"));
     }
 
-    // ============================================================
     // GET APPLICATIONS BY TENANT
-    // ============================================================
 
-    public List<Application> getApplicationsByTenant(
-            String tenantId) {
+    public List<Application> getApplicationsByTenant(String tenantId) {
 
         if (!tenantRepository.existsByTenantId(tenantId)) {
-
-            throw new RuntimeException(
-                    "Tenant not found"
-            );
+            throw new RuntimeException("Tenant not found");
         }
 
-        return applicationRepository.findByTenantId(
-                tenantId
-        );
+        return applicationRepository.findByTenantId(tenantId);
     }
 
-    // ============================================================
     // GET APPLICATIONS BY PROPERTY
-    // ============================================================
 
     public List<Application> getApplicationsByProperty(
             String propertyId,
             String userId) {
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(propertyId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
+        Property property = propertyRepository
+                .findByPropertyId(propertyId)
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
 
-        // Only the landlord who owns the property
-        // can view its applications.
         if (!property.getLandlordId().equals(userId)) {
-
             throw new RuntimeException(
-                    "You are not authorized to view applications for this property"
-            );
+                    "You are not authorized to view applications for this property");
         }
 
-        // Landlord must be verified.
         requireVerifiedLandlord(userId);
 
-        return applicationRepository
-                .findByPropertyId(propertyId);
+        return applicationRepository.findByPropertyId(propertyId);
     }
 
-    // ============================================================
     // CREATE APPLICATION
-    // ============================================================
 
     public Application createApplication(
             Application application,
             String userId) {
 
         if (userId == null || userId.isBlank()) {
-
-            throw new RuntimeException(
-                    "User ID is required"
-            );
+            throw new RuntimeException("User ID is required");
         }
 
-        // Tenant can only create an application
-        // for their own account.
         if (!userId.equals(application.getTenantId())) {
-
             throw new RuntimeException(
-                    "You can only create an application for your own tenant account"
-            );
+                    "You can only create an application for your own tenant account");
         }
 
-        // Check that tenant exists.
         if (!tenantRepository.existsByTenantId(
                 application.getTenantId())) {
-
-            throw new RuntimeException(
-                    "Tenant not found"
-            );
+            throw new RuntimeException("Tenant not found");
         }
 
-        // --------------------------------------------------------
-        // GET TENANT PREFERENCES
-        // --------------------------------------------------------
+        // Get tenant preferences
 
-        TenantPreference preference =
-                tenantPreferenceRepository
-                        .findByTenantId(
-                                application.getTenantId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Tenant preferences not found"
-                                ));
+        TenantPreference preference = tenantPreferenceRepository
+                .findByTenantId(application.getTenantId())
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant preferences not found"));
 
-        // --------------------------------------------------------
-        // GET PROPERTY
-        // --------------------------------------------------------
+        // Get property
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(
-                                application.getPropertyId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
-        // --------------------------------------------------------
-       // PROPERTY AVAILABILITY CHECK
-        // --------------------------------------------------------
+        Property property = propertyRepository
+                .findByPropertyId(application.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
+
+        // Check property availability
 
         if (!"Available".equalsIgnoreCase(
                 property.getPropertyStatus())) {
-
             throw new RuntimeException(
-                    "This property is no longer available"
-            );
+                    "This property is no longer available");
         }
-        // --------------------------------------------------------
-        // LANDLORD VERIFICATION
-        // --------------------------------------------------------
 
-        // --------------------------------------------------------
-        // LANDLORD VERIFICATION
-        // --------------------------------------------------------
+        // Verify landlord
 
-        /*
-         * Tenant can only apply to a property
-         * owned by a verified landlord.
-         *
-         * Rejected and Pending landlords cannot
-         * receive applications.
-         */
-
-        Landlord landlord =
-                landlordRepository
-                        .findByLandlordId(
-                                property.getLandlordId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Landlord not found"
-                                ));
+        Landlord landlord = landlordRepository
+                .findByLandlordId(property.getLandlordId())
+                .orElseThrow(() ->
+                        new RuntimeException("Landlord not found"));
 
         if ("Rejected".equalsIgnoreCase(
                 landlord.getVerificationStatus())) {
-
             throw new RuntimeException(
-                    "You cannot apply to a property owned by a rejected landlord"
-            );
+                    "You cannot apply to a property owned by a rejected landlord");
         }
 
         if (!"Verified".equalsIgnoreCase(
                 landlord.getVerificationStatus())) {
-
             throw new RuntimeException(
-                    "You cannot apply to a property owned by an unverified landlord"
-            );
+                    "You cannot apply to a property owned by an unverified landlord");
         }
 
-        // --------------------------------------------------------
-        // DUPLICATE APPLICATION CHECK
-        // --------------------------------------------------------
+        // Prevent duplicate applications
 
-        if (applicationRepository
-                .existsByTenantIdAndPropertyId(
-                        application.getTenantId(),
-                        application.getPropertyId())) {
-
+        if (applicationRepository.existsByTenantIdAndPropertyId(
+                application.getTenantId(),
+                application.getPropertyId())) {
             throw new RuntimeException(
-                    "You have already applied for this property"
-            );
+                    "You have already applied for this property");
         }
 
-        // --------------------------------------------------------
-        // GENERATE APPLICATION ID
-        // --------------------------------------------------------
+        // Set application ID and date
 
-        String applicationId =
-                generateApplicationId();
+        application.setApplicationId(generateApplicationId());
+        application.setApplicationDate(LocalDate.now().toString());
 
-        application.setApplicationId(
-                applicationId
-        );
+        // Validate tenant's preferred move-in date
 
-        // --------------------------------------------------------
-        // APPLICATION DATE
-        // --------------------------------------------------------
+        String preferredMoveInDate =
+                preference.getPreferredMoveInDate();
 
-        application.setApplicationDate(
-                LocalDate.now().toString()
-        );
+        String availableFrom = property.getAvailableFrom();
 
-        // --------------------------------------------------------
-        // COPY TENANT PREFERENCES
-        // --------------------------------------------------------
+        if (preferredMoveInDate == null
+                || preferredMoveInDate.isBlank()) {
+            throw new RuntimeException(
+                    "Preferred move-in date is required");
+        }
 
-        /*
-         * The tenant does not enter these values again
-         * when applying.
-         *
-         * They are taken directly from TENANT_PREFERENCE.
-         */
+        if (availableFrom == null || availableFrom.isBlank()) {
+            throw new RuntimeException(
+                    "Property availability date is missing");
+        }
 
-        application.setProposedMoveInDate(
-                preference.getPreferredMoveInDate()
-        );
+        LocalDate moveInDate;
+        LocalDate availabilityDate;
 
+        try {
+            moveInDate = LocalDate.parse(preferredMoveInDate);
+            availabilityDate = LocalDate.parse(availableFrom);
+        } catch (java.time.format.DateTimeParseException exception) {
+            throw new RuntimeException(
+                    "Move-in date and property availability date must use YYYY-MM-DD format");
+        }
+
+        // NEW VALIDATION: Reject past move-in dates
+
+        if (moveInDate.isBefore(LocalDate.now())) {
+            throw new RuntimeException(
+                    "Preferred move-in date cannot be in the past");
+        }
+
+        // Existing validation: Respect property availability date
+
+        if (moveInDate.isBefore(availabilityDate)) {
+            throw new RuntimeException(
+                    "Preferred move-in date cannot be before the property's available date: "
+                            + availableFrom);
+        }
+
+        // Copy tenant preferences into application
+
+        application.setProposedMoveInDate(preferredMoveInDate);
         application.setNumberOfOccupants(
-                preference.getNumberOfOccupants()
-        );
+                preference.getNumberOfOccupants());
 
-        // --------------------------------------------------------
-        // INITIAL APPLICATION STATUS
-        // --------------------------------------------------------
+        // Set initial status
 
-        application.setApplicationStatus(
-                "Pending"
-        );
+        application.setApplicationStatus("Pending");
 
-        // --------------------------------------------------------
-        // SAVE APPLICATION
-        // --------------------------------------------------------
+        // Save application
 
-        return applicationRepository.save(
-                application
-        );
+        return applicationRepository.save(application);
     }
 
-    // ============================================================
     // UPDATE APPLICATION STATUS
-    // ============================================================
 
     public Application updateApplicationStatus(
             String applicationId,
             String status,
             String userId) {
 
-        Application existingApplication =
-                applicationRepository
-                        .findByApplicationId(applicationId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Application not found"
-                                ));
+        Application existingApplication = applicationRepository
+                .findByApplicationId(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
 
-        Property property =
-                propertyRepository
-                        .findByPropertyId(
-                                existingApplication.getPropertyId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
+        Property property = propertyRepository
+                .findByPropertyId(existingApplication.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
 
-        // Only the landlord who owns the property
-        // can update the application.
         if (!property.getLandlordId().equals(userId)) {
-
             throw new RuntimeException(
-                    "You are not authorized to update this application"
-            );
+                    "You are not authorized to update this application");
         }
 
-        // Landlord must be verified.
         requireVerifiedLandlord(userId);
 
-        // Validate status.
-        if (!status.equals("Pending")
+        if (status == null
+                || (!status.equals("Pending")
                 && !status.equals("Approved")
                 && !status.equals("Rejected")
-                && !status.equals("Withdrawn")) {
-
-            throw new RuntimeException(
-                    "Invalid application status"
-            );
+                && !status.equals("Withdrawn"))) {
+            throw new RuntimeException("Invalid application status");
         }
 
-        /*
-         * Only a pending application can be processed.
-         *
-         * This prevents an already approved application
-         * from creating another lease.
-         */
         if (!"Pending".equalsIgnoreCase(
                 existingApplication.getApplicationStatus())) {
-
             throw new RuntimeException(
-                    "Only a pending application can be approved or rejected"
-            );
+                    "Only a pending application can be approved or rejected");
         }
-
-        // ========================================================
-        // APPROVE APPLICATION
-        // ========================================================
 
         if ("Approved".equalsIgnoreCase(status)) {
 
-            existingApplication.setApplicationStatus(
-                    "Approved"
-            );
+            existingApplication.setApplicationStatus("Approved");
+            property.setPropertyStatus("Reserved");
 
-            applicationRepository.save(
-                    existingApplication
-            );
+            Application savedApplication =
+                    applicationRepository.save(existingApplication);
 
-            try {
+            propertyRepository.save(property);
 
-                // Create lease automatically.
-                leaseService.createLeaseFromApprovedApplication(
-                        applicationId,
-                        userId
-                );
+            // Lease creation happens only after successful payment.
 
-                /*
-                 * The lease was successfully created.
-                 * Now mark the property as Rented.
-                 */
-                property.setPropertyStatus("Rented");
-
-                propertyRepository.save(property);
-
-            } catch (RuntimeException e) {
-
-                /*
-                 * If lease creation fails,
-                 * revert the application to Pending.
-                 */
-                existingApplication.setApplicationStatus(
-                        "Pending"
-                );
-
-                applicationRepository.save(
-                        existingApplication
-                );
-
-                throw e;
-            }
-
-            return existingApplication;
+            return savedApplication;
         }
 
-        // ========================================================
-        // REJECT / WITHDRAW / PENDING
-        // ========================================================
+        existingApplication.setApplicationStatus(status);
 
-        existingApplication.setApplicationStatus(
-                status
-        );
-
-        return applicationRepository.save(
-                existingApplication
-        );
+        return applicationRepository.save(existingApplication);
     }
 
-    // ============================================================
     // WITHDRAW APPLICATION
-    // ============================================================
 
     public Application withdrawApplication(
             String applicationId,
             String userId) {
 
-        Application existingApplication =
-                applicationRepository
-                        .findByApplicationId(applicationId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Application not found"
-                                ));
+        Application existingApplication = applicationRepository
+                .findByApplicationId(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
 
-        // Only the tenant who created the application
-        // can withdraw it.
-        if (!existingApplication
-                .getTenantId()
-                .equals(userId)) {
-
+        if (!existingApplication.getTenantId().equals(userId)) {
             throw new RuntimeException(
-                    "You are not authorized to withdraw this application"
-            );
+                    "You are not authorized to withdraw this application");
         }
 
-        // Only pending applications can be withdrawn.
         if (!"Pending".equalsIgnoreCase(
                 existingApplication.getApplicationStatus())) {
-
             throw new RuntimeException(
-                    "Only a pending application can be withdrawn"
-            );
+                    "Only a pending application can be withdrawn");
         }
 
-        existingApplication.setApplicationStatus(
-                "Withdrawn"
-        );
+        existingApplication.setApplicationStatus("Withdrawn");
 
-        return applicationRepository.save(
-                existingApplication
-        );
+        return applicationRepository.save(existingApplication);
     }
 
-    // ============================================================
     // DELETE APPLICATION
-    // ============================================================
 
     public void deleteApplication(
             String applicationId,
             String userId) {
 
-        Application existingApplication =
-                applicationRepository
-                        .findByApplicationId(applicationId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Application not found"
-                                ));
+        Application existingApplication = applicationRepository
+                .findByApplicationId(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
 
         // Tenant can delete their own application.
-        if (existingApplication
-                .getTenantId()
-                .equals(userId)) {
 
-            applicationRepository.delete(
-                    existingApplication
-            );
-
+        if (existingApplication.getTenantId().equals(userId)) {
+            applicationRepository.delete(existingApplication);
             return;
         }
 
-        // Landlord can delete applications
-        // belonging to their property.
-        Property property =
-                propertyRepository
-                        .findByPropertyId(
-                                existingApplication.getPropertyId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Property not found"
-                                ));
+        // Landlord can delete applications for their property.
+
+        Property property = propertyRepository
+                .findByPropertyId(existingApplication.getPropertyId())
+                .orElseThrow(() ->
+                        new RuntimeException("Property not found"));
 
         if (property.getLandlordId().equals(userId)) {
-
-            // Landlord must be verified.
             requireVerifiedLandlord(userId);
-
-            applicationRepository.delete(
-                    existingApplication
-            );
-
+            applicationRepository.delete(existingApplication);
             return;
         }
 
         throw new RuntimeException(
-                "You are not authorized to delete this application"
-        );
+                "You are not authorized to delete this application");
     }
 
-    // ============================================================
     // CHECK LANDLORD VERIFICATION
-    // ============================================================
 
-    private boolean isLandlordVerified(
-            String landlordId) {
+    private boolean isLandlordVerified(String landlordId) {
 
-        if (landlordId == null
-                || landlordId.isBlank()) {
-
+        if (landlordId == null || landlordId.isBlank()) {
             return false;
         }
 
@@ -545,52 +356,32 @@ public class ApplicationService {
                 .findByLandlordId(landlordId)
                 .map(landlord ->
                         "Verified".equalsIgnoreCase(
-                                landlord.getVerificationStatus()
-                        ))
+                                landlord.getVerificationStatus()))
                 .orElse(false);
     }
 
-    // ============================================================
     // REQUIRE VERIFIED LANDLORD
-    // ============================================================
 
-    private void requireVerifiedLandlord(
-            String landlordId) {
+    private void requireVerifiedLandlord(String landlordId) {
 
         if (!isLandlordVerified(landlordId)) {
-
             throw new RuntimeException(
-                    "Landlord account is not verified"
-            );
+                    "Landlord account is not verified");
         }
     }
 
-    // ============================================================
     // GENERATE APPLICATION ID
-    // ============================================================
 
     private String generateApplicationId() {
 
-        long count =
-                applicationRepository.count() + 1;
+        long count = applicationRepository.count() + 1;
 
-        String applicationId =
-                String.format(
-                        "APP%03d",
-                        count
-                );
+        String applicationId = String.format("APP%03d", count);
 
-        while (applicationRepository
-                .existsByApplicationId(
-                        applicationId)) {
-
+        while (applicationRepository.existsByApplicationId(
+                applicationId)) {
             count++;
-
-            applicationId =
-                    String.format(
-                            "APP%03d",
-                            count
-                    );
+            applicationId = String.format("APP%03d", count);
         }
 
         return applicationId;
