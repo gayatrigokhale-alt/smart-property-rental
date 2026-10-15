@@ -1,4 +1,3 @@
-
 package com.rental.smart_property_rental.service;
 
 import com.rental.smart_property_rental.model.Application;
@@ -166,6 +165,8 @@ public class ApplicationService {
         application.setApplicationDate(LocalDate.now().toString());
 
         // Validate tenant's preferred move-in date
+        // Past dates are allowed, but the date must be valid
+        // and cannot be before the property's availability date.
 
         String preferredMoveInDate =
                 preference.getPreferredMoveInDate();
@@ -194,14 +195,7 @@ public class ApplicationService {
                     "Move-in date and property availability date must use YYYY-MM-DD format");
         }
 
-        // NEW VALIDATION: Reject past move-in dates
-
-        if (moveInDate.isBefore(LocalDate.now())) {
-            throw new RuntimeException(
-                    "Preferred move-in date cannot be in the past");
-        }
-
-        // Existing validation: Respect property availability date
+        // Retained validation: Respect property availability date
 
         if (moveInDate.isBefore(availabilityDate)) {
             throw new RuntimeException(
